@@ -6,7 +6,7 @@ Created on Sat Feb 26 15:23:02 2022
 @author: Milo Kamiya Belmont
 """
 
-from dep.FrohlichPoleronDiagMCUpdates import diagMC as FPC
+import dep.FPDMCUpdates_OrderLimit as FPC
 import time
 import numpy as np
 import numpy.random as nrng
@@ -21,7 +21,7 @@ def full(tauMax,runTime,p,pExt,mu,k,alpha,orderMax,m=1):
     
     
     tauList=[]
-    qList=np.ndarray[(5,orderMax)]
+    qList=np.ndarray((orderMax,5))
     
     total=sum(p)
     
@@ -89,50 +89,53 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     tauList=[]
     runTime=runTime*3600+time.time()
     count=0
-    tau=tauMax
+    tau=0
     while time.time()<runTime:
-        tau,i = FPC.tauChange(pExt,tauMax,tau,mu)
+        tau,i = FPC.changeTau(tau,tauMax,pExt,0,m)
         tauList.append(tau)
         count += i
         
     return tauList,count
 
 
-def first_order(tauMax,runTime,p,pExt,mu,k,alpha,m=1):
-    maxorder=15
-    tauList=[tauMax]
-    qList=[]
-    total=sum(p)
-    pTau=p[0]/total
-    pIns=p[1]/total
-    pRem=p[2]/total
+def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
+    tau=FPC.changeTau(0,tauMax,pExt,0,m)
+    tauList=[tau]
+    qList=np.ndarray((orderMax,5))
+    total=sum(P)
+    pTau=P[0]/total
+    pIns=P[1]/total
+    pRem=P[2]/total
     countT=0
     countI=0
-    countR=[]
+    countR=0
     orderList=[]
     mcTime=[]
     mcT=1
-    tau=tauMax
+    n=0
     runTime=runTime*3600+time.time()
     
     while time.time()<runTime:
         
         x=nrg.uniform()
-        order=FPC.order(qList)
         
-        if order==0 and 0<=x<=pTau:
-            tau,i = FPC.tauChange(pExt,tauMax,tau,mu,m)
+        
+        
+        if 0<=x<=pTau:
+            tau,i = FPC.changeTau(tau,tauMax,pExt,n,m)
             tauList.append(tau)
             countT += i
             mcTime.append(mcT)
             mcT=0
-        elif pTau<x<=pTau+pIns and order<maxorder:
-            qList,i=FPC.insertProp(qList, tau, k, mu, alpha, order,1/pIns,1/pRem)
+        elif pTau<x<=pTau+pIns and n<orderMax:
+            qList,i=FPC.insertArc(qList,pExt,tauMax,orderMax,omega,m,n)
             countI+=i
-        elif pTau+pIns<x<=1 and order>=1:
-            qList,i=FPC.removeProp(qList,tau, k, mu, alpha, order,1/pIns,1/pRem)
-            countR.append(i)
-            
+            n+=i
+        elif pTau+pIns<x<=1 and n>=1:
+            qList,i=FPC.removeArc(qList,omega,tauMax,m,pExt,n)
+            countR+=i
+            n+=i
+        orderList.append(n)  
         mcT+=1
         
     mcTime.append(mcT)
