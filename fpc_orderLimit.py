@@ -119,7 +119,7 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
         
         x=nrg.uniform()
         
-        
+        #print('q',qList)
         
         if 0<=x<=pTau:
             tau,i = FPC.changeTau(tau,tauMax,pExt,n,m)
@@ -132,7 +132,7 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
             countI+=i
             n+=i
         elif pTau+pIns<x<=1 and n>=1:
-            qList,i=FPC.removeArc(qList,omega,tauMax,m,pExt,n)
+            qList,i=FPC.removeArc(qList,omega,tauMax,orderMax,m,pExt,n)
             countR+=i
             n+=i
         orderList.append(n)  

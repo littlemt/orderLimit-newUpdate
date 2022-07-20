@@ -81,27 +81,27 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
     
     
     
-def removeArc(qList,omega,tMax,m,p,n):
+def removeArc(qList,omega,tMax,orderMax,m,p,n):
     #n=order(qList)
     
     i=nrand.integers(0,n)
     [tauTwo,tauTwoP,q1,q2,q3]=qList[i]
     qTwo=np.linalg.norm([q1,q2,q3])
     
-    
+    #issue is that i am getting 
     tList=qList[:n,0:2]
     tList=tList.flatten()
-    #tList=np.trim_zeros(tList)
     tList=np.append(tList, [0,tMax])
     tList=np.sort(tList,axis=None)
     
     #might have to make it order -1
     #how do i calc dTa, going to pick arc that covers tauTwo 
     j=np.where(tList==tauTwo)[0]
-    print(tList)
+    #print(tList)
     
-    #i know what is happening here dont know how to fix it. maybe slicing wrong?
-    print(tList[j+1],j+1)
+    #somehow my tauTwo is picking zero should not be an issue with insert 
+    #therefor must be a problem with remove cant figure out where 
+    
     if tList[j+1]==tauTwoP:
         tauOne=tList[j-1]
         tauOneP=tList[j+2]
@@ -113,18 +113,22 @@ def removeArc(qList,omega,tMax,m,p,n):
     r=R_insert(omega, m, p, tauTwo, tauTwoP, qTwo, n, dTa)**-1
     
     x=nrand.uniform()
-    print(i,n)
+    #print(i,n)
     dum1=qList[i+1:n+1]
     dum2=qList[i:n]
-    print(np.shape(dum1),np.shape(dum2))
-    if x<1:
-        print('a')
+    #print(np.shape(dum1),np.shape(dum2))
+    if x<r:
+        print('a',i)
         if i==n-1:
+            #this part says if the arc to remove is the same as the max order 
+            #then just remove the last arc from the list 
             qList[n-1]=np.zeros(5)
         else:
-            dummy=qList[i+1:n+1]
-            qList[n-1]=np.zeros(5)
-            qList[i:n]=dummy
+            #takes the arcs on the list from after the arc picked and places them back one spot
+            
+            dummy=qList[i+1:orderMax]
+            qList[i:orderMax-1]=dummy
+            qList[orderMax-1]=np.zeros(5)
         
         return qList,-1
     else:
@@ -133,6 +137,20 @@ def removeArc(qList,omega,tMax,m,p,n):
         
         
         
+def swap (qList,order):
+    n=order
+    tList=qList[:n,0:2]
+    tList=tList.flatten()
+    tList=np.sort(tList,axis=None)
+    i=nrand.integers(0,tList.size)
+    
+    '''
+    questions
+    does this need to be done with only the initial point or is it anypoint on an interval
+    and i can sway the endpoints even if they are on opposite ends. 
+    '''
+    
+    
     
     
     
