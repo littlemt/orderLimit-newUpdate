@@ -121,7 +121,7 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
         
         #print('q',qList)
         
-        if 0<=x<=pTau:
+        if 0<=x<=pTau and tau<tauMax:
             tau,i = FPC.changeTau(tau,tauMax,pExt,n,m)
             tauList.append(tau)
             countT += i
