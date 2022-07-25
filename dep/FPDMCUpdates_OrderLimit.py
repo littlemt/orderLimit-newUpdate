@@ -138,16 +138,54 @@ def removeArc(qList,omega,tMax,orderMax,m,p,n):
         
         
 def swap (qList,order):
-    n=order
-    tList=qList[:n,0:2]
-    tList=tList.flatten()
-    tList=np.sort(tList,axis=None)
-    i=nrand.integers(0,tList.size)
     
+    a=nrand.integers(0,order)
+    [b,c]=nrand.integers(0,2,size=2)
+    
+    arcOne=qList[a]
+    
+    tauList=qList[:order,:2]
+    tauList=tauList.flatten()
+    tauList=np.sort(tauList)
+    
+    
+    if arcOne(b)==tauList[0]:
+        i=1
+    elif arcOne[b]==tauList[-1]:
+        i=tauList.size()-1
+    else:
+        for i in range (1,tauList.size()-1):
+            if arcOne[b]==tauList[i]:
+                if c==0:
+                    i=i-1
+                else:
+                    i=i+1
+            break
+    
+    x=nrand.uniform()
+    
+    ind=np.where(qList[:order,:2]==tauList[i])
+    arcTwo=qList[ind[0]]
+    
+    r=np.exp(-abs(arcOne[b]-arcTwo[ind[1]]))
+            #eps(p')-esp(p)\pm omega_a\pm omega_b
+            #what does the plusminus do? 
+    if x<r:
+        qList[a,b]=arcTwo[ind[1]]
+        qList[a,2:5]=arcTwo[2:5]
+        qList[ind]=arcOne[b]
+        qList[ind[0],2:5]=arcOne[2:5]
+        return qList,1
+    else:
+        return qList,0
+        
     '''
     questions
     does this need to be done with only the initial point or is it anypoint on an interval
-    and i can sway the endpoints even if they are on opposite ends. 
+    and i can swap the endpoints even if they are on opposite ends. 
+    
+    
+    
     '''
     
     
@@ -174,11 +212,6 @@ def order(qList):
     
             
     
-    #need to create list of nodes
-    
-    #new change tau same as old but can do at not 0 order 1:03:40
-    #new insert remove 
-    #max order 2 
-    #add extend
+#
 
         
