@@ -157,7 +157,7 @@ def data_Unravel(qList):
         
     return table
 
-def calc(tauList,mctList,norm):
+def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
     #do i want mctime or max order?
     #currently takes the list 
     #need to figure out how to calulate ground state energy
@@ -171,21 +171,34 @@ def calc(tauList,mctList,norm):
         print('List length not equal')
         return
     
-    tL=np.array(tauList)
-    mL=np.array(mctList)
+    timeArray=np.ndarray((len1,2))
+    timeArray[:,0]=tauList
+    timeArray[:,1]=mctList
     
-    histList=np.zeros(np.sum(mL))
-    dummy=0
+    histBin=np.ndarray(noBin,3)
+    histBin[:,0]=np.linspace(0, tauMax,noBin)
     
-    for i in range(len1):
-        a=mL[i]
-        histList[dummy:dummy+a]=tL[i]*np.ones(a)
+    deltaTau=tauMax/noBin
+    
+    
+    for i in range(noBin):
+        count=0
+        for j in timeArray:
+            if i*deltaTau<=j[0]<(i+1)*deltaTau:
+                count+=j[1]
         
-    return histList
-        
+        histBin[i,1]=count
+            
+     
     
+    epsK=k**2/(2*m)
     
-        
+    integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
+    
+    for i in range(noBin):
+        histBin[i,2]=-histBin[i,1]*integral/deltaTau/-zeroOrder
+
+    return histBin        
         
         
     
