@@ -99,9 +99,51 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
 
 
 def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
-    tau=FPC.changeTau(0,tauMax,pExt,0,m)
-    tauList=[tau]
+    '''
+    
+
+    Parameters
+    ----------
+    tauMax : float
+        Maximum allowed tau value allowed to be picked.
+    runTime : float
+        Total time the simulation should run.
+    P : list or array of size 3
+        List defining the probabliitys for each update to be picked each loop.
+    pExt : float
+        External momentum of the system.
+    mu : float
+        Chemicle potnetial of the system.
+    k : float
+        Momentun of the bare electron propogator.
+    alpha : float
+        coupling constant.
+    orderMax : int
+        maximum order allowed for the simulation.
+    omega : float, optional
+        frequency of the particle. The default is 1.
+    m : float, optional
+        mass of the particle. The default is 1.
+
+    Returns
+    -------
+    tauList : array type
+        List of each change in tau.
+    mcTime : array type
+        ammount of monte carlo time between each tau update.
+    qList : array type (Max order x 5)
+        the final array that contains all the phonon arcs created by the simulation.
+    orderList : array type
+        list of the order at each update.
+    count : list 
+        List of the amount of time each update was accepted in order [change tau,
+        insert, -remove].
+
+    '''
     qList=np.ndarray((orderMax,5))
+    tau=FPC.changeTau(0,tauMax,qList,pExt,0,m)
+    tauList=[tau[0]]
+    
     total=sum(P)
     pTau=P[0]/total
     pIns=P[1]/total
@@ -113,16 +155,17 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
     mcTime=[]
     mcT=1
     n=0
-    runTime=runTime*3600+time.time()
+    #startTime=time.time()
+    endTime=runTime*3600+time.time()
     
-    while time.time()<runTime:
-        
+    while time.time()<endTime:
+        #if time.time()-startTime
         x=nrg.uniform()
         
         #print('q',qList)
         
-        if 0<=x<=pTau and tau<tauMax:
-            tau,i = FPC.changeTau(tau,tauMax,pExt,n,m)
+        if 0<=x<=pTau:
+            tau,i = FPC.changeTau(tau,tauMax,qList,pExt,n,m)
             tauList.append(tau)
             countT += i
             mcTime.append(mcT)
@@ -132,7 +175,7 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
             countI+=i
             n+=i
         elif pTau+pIns<x<=1 and n>=1:
-            qList,i=FPC.removeArc(qList,omega,tauMax,orderMax,m,pExt,n-1)
+            qList,i=FPC.removeArc(qList,omega,tauMax,orderMax,m,pExt,n)
             countR+=i
             n+=i
         orderList.append(n)  
@@ -140,7 +183,7 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
         
     mcTime.append(mcT)
     count=[countT,countI,countR]
-    return tauList,mcTime,qList,count
+    return tauList,mcTime,qList,orderList,count
 
 #check out end of second talk
 #check how often a update is being rejected 
@@ -157,11 +200,10 @@ def data_Unravel(qList):
         
     return table
 
+def countZero(orderList):
+    return np.count_nonzero(orderList==0)
+
 def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
-    #do i want mctime or max order?
-    #currently takes the list 
-    #need to figure out how to calulate ground state energy
-    #work in progress
     
     
     len1=len(tauList)
@@ -175,7 +217,7 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
     timeArray[:,0]=tauList
     timeArray[:,1]=mctList
     
-    histBin=np.ndarray(noBin,3)
+    histBin=np.ndarray((noBin,3))
     histBin[:,0]=np.linspace(0, tauMax,noBin)
     
     deltaTau=tauMax/noBin
@@ -203,8 +245,7 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
         
     
         
-#questions for next meeting do i want to track order or mctime i can track both
-#forget how to calc the groiund state. 
+
         
 #add extend 
 
@@ -213,6 +254,7 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
 #if i limit the order then i can use numpy array
 #this would require the order function to be changed would need to store 
 #the order as a seperate variable or can remake the list every time change. 
+#can make paralell by using multipul seeds then running the simulation in parallel it looks like
 
         
         

@@ -22,19 +22,28 @@ swap
 '''
     
 
-def changeTau(t,tauMax,pExt,order,m):
+def changeTau(tau,tauMax,qList,pExt,order,m):
+    t=tau
     if order!=0:
+        tList=qList[:order,0:2]
+        tList=tList.flatten()
+        
+        t=np.max(tList)
+        
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
         tauNew=t-np.log(R)/eps
         
-        return tauNew,1
+        
     else:
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
         tauNew=-np.log(R)/eps
+    if tauNew>tauMax:
+        return tau,0
+    else:
         return tauNew,1
     
     
@@ -118,7 +127,7 @@ def removeArc(qList,omega,tMax,orderMax,m,p,n):
     dum2=qList[i:n]
     #print(np.shape(dum1),np.shape(dum2))
     if x<r:
-        print('a',i)
+        #print('a',i)
         if i==n-1:
             #this part says if the arc to remove is the same as the max order 
             #then just remove the last arc from the list 
@@ -132,7 +141,7 @@ def removeArc(qList,omega,tMax,orderMax,m,p,n):
         
         return qList,-1
     else:
-        print('r')
+        #print('r')
         return qList,0
         
         
