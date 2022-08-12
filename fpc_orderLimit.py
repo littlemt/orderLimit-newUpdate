@@ -204,7 +204,36 @@ def countZero(orderList):
     return np.count_nonzero(orderList==0)
 
 def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
+    '''
     
+
+    Parameters
+    ----------
+    tauList : TYPE
+        DESCRIPTION.
+    mctList : TYPE
+        DESCRIPTION.
+    noBin : int
+        number of bins.
+    tauMax : float
+        maximum allowed external time.
+    k : float
+        DESCRIPTION.
+    mu : float
+        DESCRIPTION.
+    zeroOrder : int
+        number of times in zero order.
+    m : float, optional
+        mass. The default is 1.
+
+    Returns
+    -------
+    histBin : array type (noBinx3)
+        returns an array of bins with collum one being the bins, collum two is
+        the count of the amount of updates that happen in the external time in that bin,
+        and collum three is the calculated value for that bin
+
+    '''
     
     len1=len(tauList)
     len2=len(mctList)
@@ -238,6 +267,7 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
     integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
     
     for i in range(noBin):
+        #just realized this is implimented wrong i think
         histBin[i,2]=-histBin[i,1]*integral/deltaTau/-zeroOrder
 
     return histBin        
