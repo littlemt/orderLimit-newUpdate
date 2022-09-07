@@ -140,9 +140,10 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
         insert, -remove].
 
     '''
-    qList=np.ndarray((orderMax,5))
+    qList=np.ndarray((orderMax+1,7))
     tau=FPC.changeTau(0,tauMax,qList,pExt,0,m)
     tauList=[tau[0]]
+    qList[0,3:7]=[0,tau[0],pExt,0]
     
     total=sum(P)
     pTau=P[0]/total
@@ -165,7 +166,7 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
         #print('q',qList)
         
         if 0<=x<=pTau:
-            tau,i = FPC.changeTau(tau,tauMax,qList,pExt,n,m)
+            tau,i = FPC.changeTau(tau,tauMax,qList,pExt,n,mu,m)
             tauList.append(tau)
             countT += i
             mcTime.append(mcT)
@@ -203,7 +204,7 @@ def data_Unravel(qList):
 def countZero(orderList):
     return np.count_nonzero(orderList==0)
 
-def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
+def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,thermal,skip,m=1):
     '''
     
 
@@ -254,7 +255,7 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,m=1):
     
     for i in range(noBin):
         count=0
-        for j in timeArray:
+        for j in range(thermal,len(timeArray),skip):
             if i*deltaTau<=j[0]<(i+1)*deltaTau:
                 count+=j[1]
         

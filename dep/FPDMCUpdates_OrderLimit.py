@@ -22,7 +22,34 @@ swap
 '''
     
 
-def changeTau(tau,tauMax,qList,pExt,order,m):
+def changeTau(tau,tauMax,qList,pExt,order,mu,m):
+    '''
+    this is a combination of the change tau and extend built into one
+
+    Parameters
+    ----------
+    tau : TYPE
+        DESCRIPTION.
+    tauMax : TYPE
+        DESCRIPTION.
+    qList : TYPE
+        DESCRIPTION.
+    pExt : TYPE
+        DESCRIPTION.
+    order : TYPE
+        DESCRIPTION.
+    m : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+    int
+        DESCRIPTION.
+
+    '''
+    
     t=tau
     if order!=0:
         tList=qList[:order,0:2]
@@ -33,14 +60,14 @@ def changeTau(tau,tauMax,qList,pExt,order,m):
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
-        tauNew=t-np.log(R)/eps
+        tauNew=t-np.log(R)/abs(eps-mu)
         
         
     else:
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
-        tauNew=-np.log(R)/eps
+        tauNew=-np.log(R)/abs(eps-mu)
     if tauNew>tauMax:
         return tau,0
     else:
@@ -50,37 +77,84 @@ def changeTau(tau,tauMax,qList,pExt,order,m):
 
 def insertArc(qList,p,tMax,orderMax,omega,m,n):
     
-    #n=order(qList)
-    
-    tList=qList[:n,0:2]
-    tList=tList.flatten()
-    #tList=np.trim_zeros(tList)
-    tList=np.append(tList, [0,tMax])
-    
-    tList=np.sort(tList,axis=None)
-    
-    index=nrand.integers(0,tList.size-1)
     
     
-    tauOne=tList[index]
-    tauOneP=tList[index+1]
-    tauTwo=nrand.uniform(tauOne,tauOneP)
-    tauTwoP=tauTwo+nrand.exponential(1/omega,None)
-    if tauTwoP>tMax:
-        return qList,0
+    index1=nrand.integers(0,n+1)
+    if index1==n:
+        index2=0
+    else:
+        index2=nrand.integers(0,2)
     
     
-    dTa=tauTwoP-tauTwo
+    dummyList=np.zeros((n+1-index1,4))
     
-    sigma=(m/(tauTwoP-tauTwo))**.5
-    qTwo=nrand.normal(0,sigma)
+    if index2==0:
+        
+        #either part of the if statment does the same thing but it depends which bare 
+        #propogator is picked based on the data structure. 
+        #qList is a terrible name dont want to change it now though.
+        
+        
+        #takes the end points of the propogator that was picked at random
+        #and gets the endpoints and momentum.
+        tauOne=qList[index1,index2+3]
+        tauOneP=qList[index1,4]
+        k=qList[index1,5]
+        
+        
+        #does the calculation of the new arc
+        tauTwo=nrand.uniform(tauOne,tauOneP)
+        tauTwoP=tauTwo+nrand.exponential(1/omega,None)
+        
+        if tauTwoP>tMax:
+            return qList,0
+        
+        dTa=tauTwoP-tauTwo
+        
+        sigma=(m/(tauTwoP-tauTwo))**.5
+        qTwo=nrand.normal(0,sigma)
+        
+        #this makes a dummy list that contains the bare propogators in time order
+        #inserts the new values then moves the other values down the list 
+        dummyList[0:2]=np.array([[tauOne,tauTwo,k,k-qTwo],[tauTwoP,tauOneP,k,qList[index1,6]]])
+        dummyList[2:n+2-index1]=qList[index1+1:n+2,3:7]#unsure about n+1 or n+2
+        
+        #all comments apply to each associated section in the else
+        
+    else:
+        tauOne=qList[index1,index2+3]
+        tauOneP=qList[index1+1,3]
+        k=qList[index1,6]
+        
+        tauTwo=nrand.uniform(tauOne,tauOneP)
+        tauTwoP=tauTwo+nrand.exponential(1/omega,None)
+        
+        if tauTwoP>tMax:
+            return qList,0
+        
+        dTa=tauTwoP-tauTwo
+        
+        sigma=(m/(tauTwoP-tauTwo))**.5
+        qTwo=nrand.normal(0,sigma)
+        
+        
+        
+        dummyList[0:2]=[qList[n],[tauTwo,tauTwoP,k-qTwo,k]]
+        dummyList[2:n+2-index1]=qList[index1+1:n+2,3:7]
+        
     
-    r=R_insert(omega, m, p, tauTwo, tauTwoP, qTwo, n, dTa)
+    
+    
+    
+    
+    r=R_insert(omega, m, k, tauTwo, tauTwoP, qTwo, n, dTa)
     
     x=nrand.uniform()
     
     if x<r:
-        qList[n]=np.array([tauTwo,tauTwoP,qTwo,0,0])
+        qList[n,0:3]=np.array([tauTwo,tauTwoP,qTwo])
+        qList[index1:n+1,3:7]=dummyList
+       
          
         #need to check if i am splicing right
         return qList,1
@@ -93,33 +167,42 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
 def removeArc(qList,omega,tMax,orderMax,m,p,n):
     #n=order(qList)
     
+    #pick random arc
     i=nrand.integers(0,n)
-    [tauTwo,tauTwoP,q1,q2,q3]=qList[i]
-    qTwo=np.linalg.norm([q1,q2,q3])
     
-    #issue is that i am getting 
-    tList=qList[:n,0:2]
-    tList=tList.flatten()
-    tList=np.append(tList, [0,tMax])
-    tList=np.sort(tList,axis=None)
+    #do i need to check that this does not cross an arc for this update?
+    #is this taken into account in the calculation of R
+    #the paper says i need to but how does it compare to the video version
     
-    #might have to make it order -1
-    #how do i calc dTa, going to pick arc that covers tauTwo 
-    j=np.where(tList==tauTwo)[0]
-    #print(tList)
     
-    #somehow my tauTwo is picking zero should not be an issue with insert 
-    #therefor must be a problem with remove cant figure out where 
+    #the way i am going to do this for now is use the momentum from the bare propogator 
+    #that the first vertex is in.
+
     
-    if tList[j+1]==tauTwoP:
-        tauOne=tList[j-1]
-        tauOneP=tList[j+2]
-    else:
-        tauOne=tList[j-1]
-        tauOneP=tList[j+1]
+    
+    
+    [tauOne,tauOneP,q]=qList[i,0:3]
+    
+    index1=np.where(qList[:,3:5]==tauOne)
+    index2=np.where(qList[:,3:5]==tauOneP)
+    
+    if index1[1]==0:
+        tauTwo=qList[index1[0]-1,1]
         
-    dTa=tauOneP-tauOne
-    r=R_insert(omega, m, p, tauTwo, tauTwoP, qTwo, n, dTa)**-1
+        
+    else:
+        tauTwo=qList[index1[0],0]
+        
+    if index2[1]==0:
+        tauTwoP=qList[index2[0]-1,1]
+    else:
+        tauTwoP=qList[index2[0],0]
+        
+    #if i allow it to pick any arc then I have to make R a large calc
+    #R should be
+        
+    
+    
     
     x=nrand.uniform()
     #print(i,n)
@@ -198,6 +281,11 @@ def swap (qList,order):
     '''
     
     
+def changeP(pList):
+    #import list of allowed p values
+    
+    i=nrand.integers(0,len(pList))
+    return pList[i]
     
     
     
@@ -207,11 +295,40 @@ def R_insert(omega,m,p,tauTwo,tauTwoP,qTwo,n,dTa):
     #Omega=
     #D_n+1/D_n=
     
+    '''
+    q=np.linalg.norm(q)
+    rad=q**2/2/m*(tauTwo-tauOne)
+    return 2*(2*np.pi)**.5*alpha**2*np.exp(rad)*prem*(tauL-tauR)\
+            /((1+order)*pins*q**2*omegaPH)*(m/(tauTwo-tauOne))**(3/2)
+    '''
+    
     D=np.exp(-omega*(tauTwoP-tauTwo))*np.exp(-(qTwo**2-2*p*qTwo)/(2*m)*(tauTwoP-tauTwo))
     qNot=np.sqrt(2*m*omega)
     Omega=1/(4*np.pi)/qNot*omega*np.exp(-omega*(1+qTwo/qNot)**2*(tauTwoP-tauTwo))
     return D/Omega*(2*n+1)*(2*n+1)*dTa/(n+1)
 
+def R_remove(qList,tauOne,tauOneP,m,mu):
+    
+    '''
+    (pow(sqrt(mass / (2*M_PI*dt)), dim) * vertex_amplitude_sq
+                    * nr_int * tau_intv * update_prob[remove]/update_prob[insert]
+                    * exp(dt* (p_ext* q)/mass) / (omega_p * order * q.r_sq()));
+    
+    
+    nr_int=2*n-1
+    tau_intv=
+    dt = it2->time() - it1->time()
+    vertex_amplitude_aq=alpha^2????
+    
+    ((m/(2*M_PI*dt))^.5)^dim
+    what is M_Pi? m*pi?
+    
+    
+    '''
+    eps_mu=qList[tauOne:tauOneP+1,-2:]/2/m-mu
+    
+    
+    
     
 '''    
 def order(qList):
@@ -221,6 +338,6 @@ def order(qList):
     
             
     
-#
+#might need to fix update insert remove
 
         
