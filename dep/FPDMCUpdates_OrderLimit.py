@@ -87,6 +87,9 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
     
     
     dummyList=np.zeros((n+1-index1,4))
+    tauList=qList[index1:n+1,3:5].flatten()
+    momList=qList[index1:n+1,5:7].flatten()
+    
     
     if index2==0:
         
@@ -106,6 +109,7 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         tauTwo=nrand.uniform(tauOne,tauOneP)
         tauTwoP=tauTwo+nrand.exponential(1/omega,None)
         
+        #checks to see if it is inserting past maxium allowed value
         if tauTwoP>tMax:
             return qList,0
         
@@ -116,8 +120,25 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         
         #this makes a dummy list that contains the bare propogators in time order
         #inserts the new values then moves the other values down the list 
-        dummyList[0:2]=np.array([[tauOne,tauTwo,k,k-qTwo],[tauTwoP,tauOneP,k,qList[index1,6]]])
-        dummyList[2:n+2-index1]=qList[index1+1:n+2,3:7]#unsure about n+1 or n+2
+        
+        dumInd=0
+        while tauTwoP>tauList[dumInd]:
+            dumInd+=1
+        
+        index1P=[np.floor(dumInd/2),dumInd%2]
+        
+        dummyList[0]=[tauOne,tauTwo,k,k-qTwo]
+        
+        momListP=[k,momList[index1*2+index2:dumInd+2]-qTwo,momList[dumInd+1]].flatten()
+        tauListP=[tauOne,tauTwo,tauList[index1*2+index2+1:dumInd+1],tauTwoP,tauOneP]
+        
+        
+        dummyList[1:index1P[0]+1-index1[0],2:4]=np.reshape(momListP,(dumInd-index1,2))
+        dummyList[1:index1P[0]+1-index1[0],:2]=np.reshape(tauListP,(dumInd-index1,2))
+        
+        #lets hope everything is sliced right
+        
+        
         
         #all comments apply to each associated section in the else
         
@@ -138,9 +159,21 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         qTwo=nrand.normal(0,sigma)
         
         
+         
+        dumInd=0
+        while tauTwoP>tauList[dumInd]:
+            dumInd+=1
         
-        dummyList[0:2]=[qList[n],[tauTwo,tauTwoP,k-qTwo,k]]
-        dummyList[2:n+2-index1]=qList[index1+1:n+2,3:7]
+        index1P=[np.floor(dumInd/2),dumInd%2]
+        
+        dummyList[0]=[tauOne,tauTwo,k,k-qTwo]
+        
+        momListP=[k,momList[index1*2+index2:dumInd+2]-qTwo,momList[dumInd+1]].flatten()
+        tauListP=[tauOne,tauTwo,tauList[index1*2+index2+1:dumInd+1],tauTwoP,tauOneP]
+        
+        
+        dummyList[1:index1P[0]+1-index1[0],2:4]=np.reshape(momListP,(dumInd-index1,2))
+        dummyList[1:index1P[0]+1-index1[0],:2]=np.reshape(tauListP,(dumInd-index1,2))
         
     
     
@@ -164,7 +197,7 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
     
     
     
-def removeArc(qList,omega,tMax,orderMax,m,p,n):
+def removeArc(qList,omega,tMax,orderMax,m,p,n,mu,pRem,pIn,alpha):
     #n=order(qList)
     
     #pick random arc
@@ -186,7 +219,7 @@ def removeArc(qList,omega,tMax,orderMax,m,p,n):
     index1=np.where(qList[:,3:5]==tauOne)
     index2=np.where(qList[:,3:5]==tauOneP)
     
-    if index1[1]==0:
+    '''if index1[1]==0:
         tauTwo=qList[index1[0]-1,1]
         
         
@@ -196,31 +229,28 @@ def removeArc(qList,omega,tMax,orderMax,m,p,n):
     if index2[1]==0:
         tauTwoP=qList[index2[0]-1,1]
     else:
-        tauTwoP=qList[index2[0],0]
+        tauTwoP=qList[index2[0],0]'''
         
     #if i allow it to pick any arc then I have to make R a large calc
-    #R should be
+    
         
+    r,propList=R_remove(qList, index1, index2, m, mu, q, omega, pRem, pIn, n, alpha)
     
-    
-    
-    x=nrand.uniform()
-    #print(i,n)
-    dum1=qList[i+1:n+1]
-    dum2=qList[i:n]
-    #print(np.shape(dum1),np.shape(dum2))
-    if x<r:
+    if r==1:
         #print('a',i)
         if i==n-1:
             #this part says if the arc to remove is the same as the max order 
             #then just remove the last arc from the list 
-            qList[n-1]=np.zeros(5)
+            qList[n-1,:3]=np.zeros(3)
+            qList[index1[0]-1:index2[0]+1,3:7]=propList
         else:
             #takes the arcs on the list from after the arc picked and places them back one spot
             
             dummy=qList[i+1:orderMax]
             qList[i:orderMax-1]=dummy
-            qList[orderMax-1]=np.zeros(5)
+            qList[orderMax-1]=np.zeros(3)
+            
+            qList[index1[0]-1:index2[0]+1,3:7]=propList
         
         return qList,-1
     else:
@@ -290,42 +320,74 @@ def changeP(pList):
     
     
     
-def R_insert(omega,m,p,tauTwo,tauTwoP,qTwo,n,dTa):
-    #D_n+1 /D_n /Omega *(2n+1)deltaTau/
-    #Omega=
-    #D_n+1/D_n=
+def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omega,q,pRem,pIn,order):
     
-    '''
-    q=np.linalg.norm(q)
-    rad=q**2/2/m*(tauTwo-tauOne)
-    return 2*(2*np.pi)**.5*alpha**2*np.exp(rad)*prem*(tauL-tauR)\
-            /((1+order)*pins*q**2*omegaPH)*(m/(tauTwo-tauOne))**(3/2)
-    '''
+    dum1=len(tauListIn)
+    deltaTauListIn=tauListIn[1:dum1+1]-tauListIn[:dum1]
+    deltaTauIn=tauListIn[-1]-tauListIn[0]
     
-    D=np.exp(-omega*(tauTwoP-tauTwo))*np.exp(-(qTwo**2-2*p*qTwo)/(2*m)*(tauTwoP-tauTwo))
-    qNot=np.sqrt(2*m*omega)
-    Omega=1/(4*np.pi)/qNot*omega*np.exp(-omega*(1+qTwo/qNot)**2*(tauTwoP-tauTwo))
-    return D/Omega*(2*n+1)*(2*n+1)*dTa/(n+1)
+    dum2=len(tauListRem)
+    deltaTauListRem=tauListRem[1:dum2+1]-tauListRem[:dum1]
+    deltaTauRem=tauListIn[-2]-tauListIn[1]
+    
+    
+    alphaTildaSq=2*np.pi*alpha*2**.5
+    
+    ratio1=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn/2/m-mu)))*np.exp(omega*(deltaTauIn))\
+        / np.exp(-np.sum(deltaTauListRem*((momentumListRem)/(2*m)-mu)))*q**2
+        
+    ratio2=pRem/pIn*(1/(order))*deltaTauIn*(2*m*np.pi/deltaTauIn)**(3/2)\
+        /(omega*np.exp(-omega*(deltaTauRem))*np.exp(-q**2/(2*m)*deltaTauRem))
+          
+    if nrand.uniform()<1/ratio1/ratio2:
+        return 1,deltaTauListRem
+    else:
+        return 0,deltaTauListRem
+          
+    
 
-def R_remove(qList,tauOne,tauOneP,m,mu):
-    
-    '''
-    (pow(sqrt(mass / (2*M_PI*dt)), dim) * vertex_amplitude_sq
-                    * nr_int * tau_intv * update_prob[remove]/update_prob[insert]
-                    * exp(dt* (p_ext* q)/mass) / (omega_p * order * q.r_sq()));
+def R_remove(qList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     
     
-    nr_int=2*n-1
-    tau_intv=
-    dt = it2->time() - it1->time()
-    vertex_amplitude_aq=alpha^2????
+    momentumList=qList[:,-2:]
+    tauList=qList[:,3:5]
     
-    ((m/(2*M_PI*dt))^.5)^dim
-    what is M_Pi? m*pi?
+    momentumList=momentumList.flatten()
+    tauList=tauList.flatten()
     
     
-    '''
-    eps_mu=qList[tauOne:tauOneP+1,-2:]/2/m-mu
+    
+    i1=index1[0]*2+index1[1]
+    i2=index2[0]*2+index2[1]
+    
+    momentumListIn=momentumList[i1-1:i2+2]
+    deltaTauListIn=tauList[i1:i2+3]-tauList[i1-1:i2+2]
+    deltaTauIn=tauList[i2+1]-tauList[i1-1]
+    deltaTauRem=tauList[i2]-tauList[i1]
+    
+    
+    dummy=deltaTauListIn[1],deltaTauListIn[-2]
+    deltaTauListRem=np.delete(deltaTauListIn, (1,-2))
+    deltaTauListRem[0],deltaTauListRem[-1]=deltaTauListRem[0]+dummy[0],deltaTauListRem[-1]+dummy[1]
+    
+    momentumListRem=np.delete(momentumListIn, (1,-2))
+    momentumListRem[1:-1]+=q
+    
+    alphaTildaSq=2*np.pi*alpha*2**.5
+    
+    ratio1=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn/2/m-mu)))*np.exp(omega*(deltaTauIn))\
+        / np.exp(-np.sum(deltaTauListRem*((momentumListRem)/(2*m)-mu)))*q**2
+        
+    ratio2=pRem/pIn*(1/(order))*deltaTauIn*(2*m*np.pi/deltaTauIn)**(3/2)\
+        /(omega*np.exp(-omega*(deltaTauRem))*np.exp(-q**2/(2*m)*deltaTauRem))
+          
+    if nrand.uniform()<1/ratio1/ratio2:
+        return 1,deltaTauListRem
+    else:
+        return 0,deltaTauListRem
+          
+    
+    
     
     
     

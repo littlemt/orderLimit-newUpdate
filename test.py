@@ -12,4 +12,5 @@ import numpy as np
 a=np.linspace(1, 10,10)
 b=np.reshape(a, (5,2))
 c=np.where(b==10)
-print(np.sum(b*(b-1)))
+a.append(0)
+print(a)
