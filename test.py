@@ -12,5 +12,6 @@ import numpy as np
 a=np.linspace(1, 10,10)
 b=np.reshape(a, (5,2))
 c=np.where(b==10)
-a.append(0)
-print(a)
+
+for i in range(2,4):
+    print(i)

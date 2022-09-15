@@ -141,9 +141,9 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
 
     '''
     qList=np.ndarray((orderMax+1,7))
-    tau=FPC.changeTau(0,tauMax,qList,pExt,0,m)
-    tauList=[tau[0]]
-    qList[0,3:7]=[0,tau[0],pExt,0]
+    tau,i=FPC.changeTau(0,tauMax,qList,pExt,0,mu,m)
+    tauList=[tau]
+    qList[0,3:7]=[0,tau,pExt,0]
     
     total=sum(P)
     pTau=P[0]/total
@@ -172,11 +172,11 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
             mcTime.append(mcT)
             mcT=0
         elif pTau<x<=pTau+pIns and n<orderMax:
-            qList,i=FPC.insertArc(qList,pExt,tauMax,orderMax,omega,m,n)
+            qList,i=FPC.insertArc(qList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu)
             countI+=i
             n+=i
         elif pTau+pIns<x<=1 and n>=1:
-            qList,i=FPC.removeArc(qList,omega,tauMax,orderMax,m,pExt,n)
+            qList,i=FPC.removeArc(qList,omega,tau,orderMax,m,n,mu,pRem,pIns,alpha)
             countR+=i
             n+=i
         orderList.append(n)  

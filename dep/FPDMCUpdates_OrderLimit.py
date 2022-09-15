@@ -75,8 +75,9 @@ def changeTau(tau,tauMax,qList,pExt,order,mu,m):
     
     
 
-def insertArc(qList,p,tMax,orderMax,omega,m,n):
+def insertArc(qList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     
+    print("ins")
     
     
     index1=nrand.integers(0,n+1)
@@ -92,7 +93,7 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
     
     
     if index2==0:
-        
+        print("i0")
         #either part of the if statment does the same thing but it depends which bare 
         #propogator is picked based on the data structure. 
         #qList is a terrible name dont want to change it now though.
@@ -107,9 +108,11 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         
         #does the calculation of the new arc
         tauTwo=nrand.uniform(tauOne,tauOneP)
+        #fix this so -ln(x)/scaling
         tauTwoP=tauTwo+nrand.exponential(1/omega,None)
         
         #checks to see if it is inserting past maxium allowed value
+        
         if tauTwoP>tMax:
             return qList,0
         
@@ -121,20 +124,24 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         #this makes a dummy list that contains the bare propogators in time order
         #inserts the new values then moves the other values down the list 
         
-        dumInd=0
-        while tauTwoP>tauList[dumInd]:
-            dumInd+=1
+        
+        
+        for i in range(index1*2+index2,len(tauList)):
+            if tauList[i]<tauTwoP<tauList[i+1]:
+                dumInd=i
+                break
+            
         
         index1P=[np.floor(dumInd/2),dumInd%2]
         
         dummyList[0]=[tauOne,tauTwo,k,k-qTwo]
         
-        momListP=[k,momList[index1*2+index2:dumInd+2]-qTwo,momList[dumInd+1]].flatten()
-        tauListP=[tauOne,tauTwo,tauList[index1*2+index2+1:dumInd+1],tauTwoP,tauOneP]
+        momListP=np.array([k,momList[index1*2+index2:dumInd+2]-qTwo,momList[dumInd+1],0]).flatten()
+        tauListP=np.array([tauOne,tauTwo,tauList[index1*2+index2+1:dumInd+1],tauTwoP,tauOneP]).flatten()
         
         
-        dummyList[1:index1P[0]+1-index1[0],2:4]=np.reshape(momListP,(dumInd-index1,2))
-        dummyList[1:index1P[0]+1-index1[0],:2]=np.reshape(tauListP,(dumInd-index1,2))
+        dummyList[1:index1P[0]+1-index1[0],2:4]=np.reshape(momListP,(dumInd+1-index1,2))
+        dummyList[1:index1P[0]+1-index1[0],:2]=np.reshape(tauListP,(dumInd+1-index1,2))
         
         #lets hope everything is sliced right
         
@@ -143,6 +150,7 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         #all comments apply to each associated section in the else
         
     else:
+        print(1)
         tauOne=qList[index1,index2+3]
         tauOneP=qList[index1+1,3]
         k=qList[index1,6]
@@ -160,7 +168,7 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         
         
          
-        dumInd=0
+        dumInd=index1*2+index2
         while tauTwoP>tauList[dumInd]:
             dumInd+=1
         
@@ -168,8 +176,8 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
         
         dummyList[0]=[tauOne,tauTwo,k,k-qTwo]
         
-        momListP=[k,momList[index1*2+index2:dumInd+2]-qTwo,momList[dumInd+1]].flatten()
-        tauListP=[tauOne,tauTwo,tauList[index1*2+index2+1:dumInd+1],tauTwoP,tauOneP]
+        momListP=np.array([k,momList[index1*2+index2:dumInd+2]-qTwo,momList[dumInd+1]]).flatten()
+        tauListP=np.array([tauOne,tauTwo,tauList[index1*2+index2+1:dumInd+1],tauTwoP,tauOneP]).flatten()
         
         
         dummyList[1:index1P[0]+1-index1[0],2:4]=np.reshape(momListP,(dumInd-index1,2))
@@ -180,7 +188,7 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
     
     
     
-    r=R_insert(omega, m, k, tauTwo, tauTwoP, qTwo, n, dTa)
+    r=R_insert(tauListP,momListP,tauList[index1*2+index2:dumInd+1],momList[index1*2+index2:dumInd+1],alpha,m,mu,omega,qTwo,pRem,pIn,n)
     
     x=nrand.uniform()
     
@@ -197,7 +205,9 @@ def insertArc(qList,p,tMax,orderMax,omega,m,n):
     
     
     
-def removeArc(qList,omega,tMax,orderMax,m,p,n,mu,pRem,pIn,alpha):
+def removeArc(qList,omega,tMax,orderMax,m,n,mu,pRem,pIn,alpha):
+    print("rem")
+    
     #n=order(qList)
     
     #pick random arc
@@ -260,6 +270,7 @@ def removeArc(qList,omega,tMax,orderMax,m,p,n,mu,pRem,pIn,alpha):
         
         
 def swap (qList,order):
+    #not updated yet
     
     a=nrand.integers(0,order)
     [b,c]=nrand.integers(0,2,size=2)
