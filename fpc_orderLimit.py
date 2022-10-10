@@ -98,7 +98,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     return tauList,count
 
 
-def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
+def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,omega=1,m=1):
     '''
     
 
@@ -108,7 +108,7 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
         Maximum allowed tau value allowed to be picked.
     runTime : float
         Total time the simulation should run.
-    P : list or array of size 3
+    P : list or array of size 4
         List defining the probabliitys for each update to be picked each loop.
     pExt : float
         External momentum of the system.
@@ -140,18 +140,26 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
         insert, -remove].
 
     '''
-    qList=np.ndarray((orderMax+1,7))
-    tau=FPC.changeTau(0,tauMax,qList,pExt,0,m)
+    qList=np.zeros((orderMax,3))
+    mList=np.zeros((orderMax*2+2,2))
+    
+    tau=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
     tauList=[tau[0]]
-    qList[0,3:7]=[0,tau[0],pExt,0]
+    mList[0:2,0]=[0,tau[0]]
+    mList[0,0]=pExt
     
     total=sum(P)
     pTau=P[0]/total
-    pIns=P[1]/total
-    pRem=P[2]/total
+    pIns=sum(P[:2])/total
+    pRem=sum(P[:3])/total
+    pSwap=sum(P[:4])/total
+    pExt=sum(P[:5])/total
+    print(pTau,pIns,pRem,pSwap)
     countT=0
     countI=0
     countR=0
+    countS=0
+    countE=0
     orderList=[]
     mcTime=[]
     mcT=1
@@ -162,29 +170,50 @@ def first_order(tauMax,runTime,P,pExt,mu,k,alpha,orderMax,omega=1,m=1):
     while time.time()<endTime:
         #if time.time()-startTime
         x=nrg.uniform()
-        
+        #print(pTau<x<pIns,x)
         #print('q',qList)
-        
-        if 0<=x<=pTau:
-            tau,i = FPC.changeTau(tau,tauMax,qList,pExt,n,mu,m)
+        #print('m',mList)
+        #print(n)
+        if 0<=x<pTau and n==0:
+            #print('tau')
+            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             tauList.append(tau)
             countT += i
+            mList[2*n+1,0]=tau
+            #print('tau')
             mcTime.append(mcT)
             mcT=0
-        elif pTau<x<=pTau+pIns and n<orderMax:
-            qList,i=FPC.insertArc(qList,pExt,tauMax,orderMax,omega,m,n)
+        elif pTau<x<=pIns and n<orderMax:
+            #print('ins')
+            qList,mList,i=FPC.insertArc(qList,mList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu)
             countI+=i
             n+=i
-        elif pTau+pIns<x<=1 and n>=1:
-            qList,i=FPC.removeArc(qList,omega,tauMax,orderMax,m,pExt,n)
+            
+        elif pIns<x<=pRem and n>=1:
+            #print('rem')
+            qList,mList,i=FPC.removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIns,alpha)
             countR+=i
             n+=i
+        elif pRem<=x<pSwap and n>=2:
+            
+            qList,mList,i=FPC.swap(qList, n)
+            countS+=i
+            
+        elif pSwap<=x<pExt and n<=1:
+            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
+            tauList.append(tau)
+            countT += i
+            mList[2*n+1,0]=tau
+            #print('tau')
+            mcTime.append(mcT)
+            mcT=0
+        
         orderList.append(n)  
         mcT+=1
         
     mcTime.append(mcT)
     count=[countT,countI,countR]
-    return tauList,mcTime,qList,orderList,count
+    return tauList,mcTime,qList,orderList,count,mList
 
 #check out end of second talk
 #check how often a update is being rejected 
