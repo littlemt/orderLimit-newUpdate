@@ -17,7 +17,7 @@ a=np.linspace(1, 10,10)
 a=np.reshape(a, (2,5))
 
 
-print(np.where(2==a))
+print(np.where(2==a)[0])
 '''
 
 

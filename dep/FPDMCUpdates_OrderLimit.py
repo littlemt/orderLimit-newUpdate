@@ -76,10 +76,19 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     
 def spliceInsert(index1,insList,recList,index2):
     length=len(insList)
-    '''print(length)
-    print(recList)
-    print(recList[index1+length:index2+length],recList[index1:index2])'''
+    
+    
     recList[index1+length-2:index2+length-2]=recList[index1:index2]
+    
+    recList[index1:index1+length]=insList
+    return(recList)
+
+def spliceInsertM(index1,insList,recList,index2):
+    length=len(insList)
+    
+    print(recList[index1:index2],'rL i1 i2')
+    recList[index1+length-1:index2+length-1]=recList[index1:index2]
+    print(recList)
     recList[index1:index1+length]=insList
     return(recList)
 
@@ -107,13 +116,18 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     
     index1=nrand.integers(0,2*n+1)
     
-
+    
     #takes the end points of the propogator that was picked at random
     #and gets the endpoints and momentum.
     tauOne=mList[index1,0]
     tauOneP=mList[index1+1,0]
     k=mList[index1,1]
     
+    if tauOneP<tauOne:
+        dummy=tauOne
+        tauOne=tauOneP
+        tauOneP=tauOne
+        
     #does the calculation of the new arc
     
     #print(mList)
@@ -147,12 +161,13 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
         
         qList[n]=[tauTwo,tauTwoP,qTwo]
         #print(mList)
-        #print(momListP)
+        
         mList[:,0]=spliceInsert(index1, tauListP, mList[:,0], 2*n+2)
-        mList[:,1]=spliceInsert(index1, momListP, mList[:,1], 2*n+1)
-        #print(qList)
-        #print(mList,'m')
-         
+        print(momListP,index1)
+        mList[:,1]=spliceInsertM(index1, momListP, mList[:,1], 2*n+1)
+        print(qList,'qL')
+        print(mList,'mL')
+        print('ins')
         
         return qList,mList,1
     else:
@@ -204,14 +219,15 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     #print(mList,'here')
     if r==1:
         #print(qList)
+        #print(mListRem)
         qList[i:n-1]=qList[i+1:n]
         qList[n-1]=np.zeros(3)
         #print(qList)
         #print(mList[:,1])
         mList[:,0]=spliceRemove(index1-1,tauListRem,mList[:,0],2*n+2)
         mList[:,1]=spliceRemove(index1-1, mListRem, mList[:,1], 2*n+1)
-           
-        
+        #print(mList)
+        #print('rem')
         return qList,mList,-1
     else:
         #print('r')
@@ -222,7 +238,15 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
 def findEndPoint(qList,tau):
     a=np.where(tau==qList)
     
-    if a[0][1]==0
+    if a[1][0]==0:
+        b=a[0][0],1
+    else:
+        b=a[0][0],0
+    
+    tauP=qList[b]
+    q=qList[a[0],2]
+    
+    return tauP,q
     
         
 def swap (qList,mList,order):
@@ -248,7 +272,8 @@ def swap (qList,mList,order):
     b=a-1
     c=a+1
     
-    
+    tauA,q1=findEndPoint(qList, tauOne)
+    tauB,q2=findEndPoint(qList, tauTwo)
     
     
     [a,b,c]=mList[b:b+3,1]
