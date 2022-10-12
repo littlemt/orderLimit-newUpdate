@@ -20,7 +20,9 @@ swap
 
 
 '''
-    
+#G_0^tilde=np.exp(-tau*(epsilon-mu))
+#epsilon =k**2/(2*m)
+#D^tilde =np.exp(-omega*tau)   
 
 def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     '''
@@ -73,6 +75,10 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     else:
         return tauNew,1
     
+def fancyExtend():
+    
+    return
+    
     
 def spliceInsert(index1,insList,recList,index2):
     length=len(insList)
@@ -86,9 +92,9 @@ def spliceInsert(index1,insList,recList,index2):
 def spliceInsertM(index1,insList,recList,index2):
     length=len(insList)
     
-    print(recList[index1:index2],'rL i1 i2')
+    #print(recList[index1:index2],'rL i1 i2')
     recList[index1+length-1:index2+length-1]=recList[index1:index2]
-    print(recList)
+    #print(recList)
     recList[index1:index1+length]=insList
     return(recList)
 
@@ -163,11 +169,11 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
         #print(mList)
         
         mList[:,0]=spliceInsert(index1, tauListP, mList[:,0], 2*n+2)
-        print(momListP,index1)
+        #print(momListP,index1)
         mList[:,1]=spliceInsertM(index1, momListP, mList[:,1], 2*n+1)
-        print(qList,'qL')
-        print(mList,'mL')
-        print('ins')
+        #print(qList,'qL')
+        #print(mList,'mL')
+        #print('ins')
         
         return qList,mList,1
     else:
@@ -238,18 +244,18 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
 def findEndPoint(qList,tau):
     a=np.where(tau==qList)
     
-    if a[1][0]==0:
-        b=a[0][0],1
+    if a[1]==0:
+        b=a[0],1
     else:
-        b=a[0][0],0
+        b=a[0],0
     
     tauP=qList[b]
     q=qList[a[0],2]
     
-    return tauP,q
+    return tauP,q,a,b
     
         
-def swap (qList,mList,order):
+def swap (qList,mList,order,omega,mu,m):
     #not updated yet
     
     #dont remember if integers is inclusive
@@ -257,46 +263,73 @@ def swap (qList,mList,order):
     
     tauOne=mList[a,0]
     
-    
+    #this just picks the closest vertex
     if a==1:
-        
         tauTwo=mList[2,0]
+        b=2
     elif abs(tauOne-mList[a-1,0])>abs(tauOne-mList[a+1,0]):
-        
         tauTwo=mList[a+1,0]
-    
+        b=a+1
     else:
-        
         tauTwo=mList[a-1,0]
+        b=a
+        a=b-1
         
-    b=a-1
-    c=a+1
-    
-    tauA,q1=findEndPoint(qList, tauOne)
-    tauB,q2=findEndPoint(qList, tauTwo)
     
     
-    [a,b,c]=mList[b:b+3,1]
+    tauA,q1,i1,i1p=findEndPoint(qList, tauOne)
+    tauB,q2,i2,i2p=findEndPoint(qList, tauTwo)
     
+    
+    k1=mList[a,1]
+    k1P=swapDecTree(tauOne, tauTwo, tauA, tauB, k1, q1, q2)
     
     x=nrand.uniform()
     
-   
-    r=np.exp(-1)
+    wX=np.exp(-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(k1**2/(2*m)-mu))
+    wY=np.exp(-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(k1P**2/(2*m)-mu))
+    r=wX/wY
+    
     if x<r:
         
-        return qList,1
-    else:
-        return qList,0
+        qList[i1]=tauTwo
+        qList[i2]=tauOne
         
-    '''
-    questions
-    does this need to be done with only the initial point or is it anypoint on an interval
-    and i can swap the endpoints even if they are on opposite ends. 
+        
+        #mList[:,0] remains unchanged
+        
+        mList[a,1]=k1P
+        
+        
+        
+        return qList,mList,1
+    else:
+        return qList,mList,0
+        
+def swapDecTree(t1,t2,ta,tb,k1,q1,q2):
     
+    #this function should make the decision as too what type of system it is and outup the correct momentum for the new system
     
-    
-    '''
+    if t2<ta:
+        if tb<t1:
+            k=k1+q1+q2
+        else:
+            if ta<tb:
+                k=k1+q1
+            else:
+                k=k1-q1
+    else:
+        if t1<tb:
+            k=k1-q1-q2
+        else:
+            if ta<tb:
+                k=k1+q2
+            else:
+                k=k1-q2
+    return k
+            
+            
+
     
     
 def changeP(pList):

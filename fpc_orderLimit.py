@@ -98,7 +98,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     return tauList,count
 
 
-def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,omega=1,m=1):
+def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
     '''
     
 
@@ -154,7 +154,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,omega=1,m=1):
     pRem=sum(P[:3])/total
     pSwap=sum(P[:4])/total
     pExt=sum(P[:5])/total
-    print(pTau,pIns,pRem,pSwap)
+    #print(pTau,pIns,pRem,pSwap)
     countT=0
     countI=0
     countR=0
@@ -196,20 +196,36 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,omega=1,m=1):
             n+=i
         elif pRem<=x<pSwap and n>=2:
             
-            qList,mList,i=FPC.swap(qList, n)
+            qList,mList,i=FPC.swap(qList,mList, n,omega,mu,m)
             countS+=i
             
         elif pSwap<=x<pExt and n<=1:
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             tauList.append(tau)
-            countT += i
+            countE += i
             mList[2*n+1,0]=tau
             #print('tau')
             mcTime.append(mcT)
             mcT=0
+            n=0
+        
         
         orderList.append(n)  
         mcT+=1
+        
+        if mcT>mcTMax:
+            print('reset')
+            qList=np.zeros((orderMax,3))
+            mList=np.zeros((orderMax*2+2,2))
+            
+            tau=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
+            tauList=[tau[0]]
+            mList[0:2,0]=[0,tau[0]]
+            mList[0,0]=pExt
+            mcTime.append(mcT)
+            n=0
+            mcT=1
+            
         
     mcTime.append(mcT)
     count=[countT,countI,countR]
