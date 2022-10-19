@@ -75,10 +75,24 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     else:
         return tauNew,1
     
-def fancyExtend():
+def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
+    t=mList[2*order,0]
     
-    return
+    eps=pExt**2/(2*m)
     
+    R=nrand.uniform()
+    tauNew=t-np.log(R)/abs(eps-mu)
+    ratio=tauNew/t
+    
+    qList[:,0:2]=qList[:,0:2]*ratio
+    mList[:2*order+1,0]=mList[:2*order+1,0]*ratio
+    
+    if tauNew>tauMax:
+        return qList,mList,t,0
+    else:
+        return qList,mList,tauNew,1
+
+#following are functions having to do with insert
     
 def spliceInsert(index1,insList,recList,index2):
     length=len(insList)
@@ -98,21 +112,6 @@ def spliceInsertM(index1,insList,recList,index2):
     recList[index1:index1+length]=insList
     return(recList)
 
-def spliceRemove(index1,remList,recList,index2):
-    #print(recList)
-    #print(remList,'rL')
-    length=len(remList)
-    #print(np.shape(remList))
-    #print(recList[index1:index1+length],remList)
-    
-    #this appends the new list to the correct place
-    recList[index1:index1+length]=remList
-    #print(recList)
-    #this takes the end part of the list 
-    recList[index1+length:index2-2]=recList[index1+length+2:index2]
-    recList[index2-2:]=0
-    #print(recList)
-    return(recList)
     
 
 
@@ -180,8 +179,55 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
         #print('fail')
         return qList,mList,0
         
+def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omega,q,pRem,pIn,order):
+    #these may be missing |V^2|
+    dum1=len(tauListIn)
+    #print(tauListIn,'tLI')
+    #print('rIn')
+    deltaTauListIn=tauListIn[1:dum1]-tauListIn[:dum1-1]
+    deltaTauIn=tauListIn[-1]-tauListIn[0]
+    #print(deltaTauListIn,deltaTauIn,'dtLI,dtI')
+    dum2=len(tauListRem)
     
     
+    #print(tauListRem[1:dum2+1],tauListRem[:dum2-1])
+    deltaTauListRem=tauListRem[1:dum2+1]-tauListRem[:dum2-1]
+    deltaTauRem=tauListIn[-2]-tauListIn[1]
+    #print(deltaTauListRem,'dtLR')
+    #print(momentumListIn,momentumListRem,'mLI,mLR')
+    
+    
+    alphaTildaSq=2*np.pi*alpha*2**.5
+    
+    
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
+    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRem)**2/(2*m)-mu)))
+
+    pXY=pRem*(1/(order+1))
+    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
+        /(2*np.pi*m/(deltaTauIn))**(3/2)
+    #print(wIns/wRem*pYX/pXY)
+    if nrand.uniform()<wIns/wRem*pYX/pXY:
+        return 1,deltaTauListRem
+    else:
+        return 0,deltaTauListRem
+    
+#the following are the functions used in remove
+def spliceRemove(index1,remList,recList,index2):
+    #print(recList)
+    #print(remList,'rL')
+    length=len(remList)
+    #print(np.shape(remList))
+    #print(recList[index1:index1+length],remList)
+    
+    #this appends the new list to the correct place
+    recList[index1:index1+length]=remList
+    #print(recList)
+    #this takes the end part of the list 
+    recList[index1+length:index2-2]=recList[index1+length+2:index2]
+    recList[index2-2:]=0
+    #print(recList)
+    return(recList)
     
 def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     #print("rem")
@@ -215,6 +261,10 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     index1=np.where(mList[:,0]==tauOne)[0][0]
     index2=np.where(mList[:,0]==tauOneP)[0][0]
     
+    if index2<index1:
+        dum=index1
+        index1=index2
+        index2=dum
     
         
     #if i allow it to pick any arc then I have to make R a large calc
@@ -238,8 +288,73 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     else:
         #print('r')
         return qList,mList,0
+    
+def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
+    #index1 is the first vertex point
+    #index2 is the final xertex 
+    #print('rRem')
+    momentumList=mList[:,1]
+    tauList=mList[:,0]
+    
+    #print(index1,index2)
+    
+    momentumListIn=momentumList[index1-1:index2+1]
+    
+    #issue here
+    deltaTauListIn=tauList[index1:index2+2]-tauList[index1-1:index2+1]
+    deltaTauIn=tauList[index2]-tauList[index1]
+    
+    deltaTauRem=tauList[index2]-tauList[index1]
+    
+    #print(tauList)
+    dummy=tauList[index1-1:index2+2]
+    dummy=np.delete(dummy, (1,-2))
+    deltaTauListRem=dummy[1:]-dummy[:-1]
+    
+    if len(momentumListIn)==3:
+        #print('testing')
+        momentumListRem=np.array([momentumListIn[0]])
+        #print(momentumListRem)
+        #print(momentumListIn)
+    else:
+        #breaking here when swap is used
+        #print(momentumListIn)
+        momentumListRem=np.delete(momentumListIn, (1,-2))
+        momentumListRem[1:-1]+=q
+    
+    alphaTildaSq=2*np.pi*alpha*2**.5
+    
+    #print(len(deltaTauListIn),len(momentumListIn),len(momentumListRem))
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
+    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRem)**2/(2*m)-mu)))
+
+    pXY=pRem*(1/(order))
+    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
+        /(2*np.pi*m/(deltaTauIn))**(3/2)
+    
+    
+    #this should take the tauList and reshape it into an (x,2) array
+    tauListRem=tauList[index1-1:index2+2]
+    #print(tauListRem)
+    tauListRem=np.delete(tauListRem, (1,-2))
+    '''tauInd=int(len(tauListRem)/2)
+    tauListRem=np.reshape(tauListRem,(tauInd,2))'''
+    
+    
+    
+    #print(tauListRem)
+    
+    #print(momentumListRem,'mR')
+    
+    #print(wRem/wIns*pYX/pXY)
+    
+    if nrand.uniform()<wRem/wIns*pYX/pXY:
+        return 1,tauListRem,momentumListRem
+    else:
+        return 0,tauListRem,momentumListRem
+          
         
-        
+#the following all has to do with swap   
         
 def findEndPoint(qList,tau):
     a=np.where(tau==qList)
@@ -256,22 +371,31 @@ def findEndPoint(qList,tau):
     
         
 def swap (qList,mList,order,omega,mu,m):
-    #not updated yet
+    #updated has bugs
+    
+    #print('swap')
+    
+    
     
     #dont remember if integers is inclusive
     a=nrand.integers(2,2*order+1)
     
     tauOne=mList[a,0]
     
+    
     #this just picks the closest vertex
+    #for this to work it is important that tauOne<tauB
     if a==1:
         tauTwo=mList[2,0]
         b=2
     elif abs(tauOne-mList[a-1,0])>abs(tauOne-mList[a+1,0]):
+        
         tauTwo=mList[a+1,0]
         b=a+1
     else:
-        tauTwo=mList[a-1,0]
+        
+        tauTwo=tauOne
+        tauOne=mList[a-1,0]
         b=a
         a=b-1
         
@@ -341,118 +465,21 @@ def changeP(pList):
     
     
     
-def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omega,q,pRem,pIn,order):
-    #these may be missing |V^2|
-    dum1=len(tauListIn)
-    #print(tauListIn,'tLI')
-    #print('rIn')
-    deltaTauListIn=tauListIn[1:dum1]-tauListIn[:dum1-1]
-    deltaTauIn=tauListIn[-1]-tauListIn[0]
-    #print(deltaTauListIn,deltaTauIn,'dtLI,dtI')
-    dum2=len(tauListRem)
-    
-    
-    #print(tauListRem[1:dum2+1],tauListRem[:dum2-1])
-    deltaTauListRem=tauListRem[1:dum2+1]-tauListRem[:dum2-1]
-    deltaTauRem=tauListIn[-2]-tauListIn[1]
-    #print(deltaTauListRem,'dtLR')
-    #print(momentumListIn,momentumListRem,'mLI,mLR')
-    
-    
-    alphaTildaSq=2*np.pi*alpha*2**.5
-    
-    
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRem)**2/(2*m)-mu)))
 
-    pXY=pRem*(1/(order+1))
-    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
-        /(2*np.pi*m/(deltaTauIn))**(3/2)
-    #print(wIns/wRem*pYX/pXY)
-    if nrand.uniform()<wIns/wRem*pYX/pXY:
-        return 1,deltaTauListRem
-    else:
-        return 0,deltaTauListRem
           
     
 
-def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
-    #index1 is the first vertex point
-    #index2 is the final xertex 
-    #print('rRem')
-    momentumList=mList[:,1]
-    tauList=mList[:,0]
-    
-    #print(index1,1,index2)
-    
-    momentumListIn=momentumList[index1-1:index2+1]
-    
-    #issue here
-    deltaTauListIn=tauList[index1:index2+2]-tauList[index1-1:index2+1]
-    deltaTauIn=tauList[index2]-tauList[index1]
-    
-    deltaTauRem=tauList[index2]-tauList[index1]
-    
-    #print(tauList)
-    dummy=tauList[index1-1:index2+2]
-    dummy=np.delete(dummy, (1,-2))
-    deltaTauListRem=dummy[1:]-dummy[:-1]
-    
-    if len(momentumListIn)==3:
-        #print('testing')
-        momentumListRem=np.array([momentumListIn[0]])
-        #print(momentumListRem)
-        #print(momentumListIn)
-    else:
-        momentumListRem=np.delete(momentumListIn, (1,-2))
-        momentumListRem[1:-1]+=q
-    
-    alphaTildaSq=2*np.pi*alpha*2**.5
-    
-    #print(len(deltaTauListIn),len(momentumListIn),len(momentumListRem))
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRem)**2/(2*m)-mu)))
 
-    pXY=pRem*(1/(order))
-    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
-        /(2*np.pi*m/(deltaTauIn))**(3/2)
-    
-    
-    #this should take the tauList and reshape it into an (x,2) array
-    tauListRem=tauList[index1-1:index2+2]
-    #print(tauListRem)
-    tauListRem=np.delete(tauListRem, (1,-2))
-    '''tauInd=int(len(tauListRem)/2)
-    tauListRem=np.reshape(tauListRem,(tauInd,2))'''
-    
-    
-    
-    #print(tauListRem)
-    
-    #print(momentumListRem,'mR')
-    
-    #print(wRem/wIns*pYX/pXY)
-    
-    if nrand.uniform()<wRem/wIns*pYX/pXY:
-        return 1,tauListRem,momentumListRem
-    else:
-        return 0,tauListRem,momentumListRem
-          
     
     
     
     
     
-    
-'''    
-def order(qList):
-    x=np.count_nonzero(qList[0])
-    return x
-    '''
+
     
             
     
 
-#momentum splice is broken 
+#data=first_order(20,1,[100,10,10,.1,0],0,-6,5,2,500000)
 
         
