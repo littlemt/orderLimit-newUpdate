@@ -13,11 +13,27 @@ rng=np.random.default_rng()
 
 
 
-a=np.linspace(1, 10,10)
-a=np.reshape(a, (2,5))
+a=rng.uniform(1,10,100)
+b=rng.integers(0,100,100)
 
 
-print(np.where(2==a)[0])
+def testfun(num,lower,upper):
+    if lower<num<=upper:
+        return 1
+    else:
+        return 0
+    
+def testfun2(num,skip):
+    if
+    
+    
+vecFun=np.vectorize(testfun)
+vecFun2=np.vectorize(testfun2)
+
+print(a)
+print(vecFun(a,5,10))
+print(b)
+print(vecFun2(b,6))
 '''
 
 

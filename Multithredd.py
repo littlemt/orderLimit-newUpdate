@@ -30,7 +30,6 @@ def loop(n):
     upProbs=np.int16(config.get('section_a','updateProb').split(','))
     pExt=float(config.get('section_a','exMomentum'))
     mu=float(config.get('section_a','mu'))
-    k=float(config.get('section_a','k'))
     alpha=float(config.get('section_a','alpha'))
     mass=float(config.get('section_a','mass'))
     omega=float(config.get('section_a','omega'))
@@ -42,7 +41,7 @@ def loop(n):
     
     #run the code for the loop to collect the data
     
-    data=fcp.full(tauMax,runTime,upProbs,pExt,mu,k,alpha,orderMax,mass)
+    data=fcp.first_order(tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,mass)
     
     return data
     #maybe just return the data
@@ -59,14 +58,18 @@ if __name__ =='__main__':
     
     rng=np.random.default_rng(seed)
     
-    rng.uniform(0,1000,noThread)
+    rand=rng.uniform(0,1000,noThread)
     #gen random numbers same dim as number of threds
     #run the parallel using the random num as seeds
     
     
-    with Pool as p:
+    with Pool(processes=(noThread)) as p:
         
-        p.map(loop,)
+        result=p.map(loop,rand)
+        
+        
+        
+        
         
         #run the function deffined above per thread combine to large data set
         #take outup then run the calculation step in paralell  

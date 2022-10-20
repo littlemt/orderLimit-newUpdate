@@ -98,7 +98,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     return tauList,count
 
 
-def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
+def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omega=1,m=1,debug=0):
     '''
     
 
@@ -114,16 +114,17 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
         External momentum of the system.
     mu : float
         Chemicle potnetial of the system.
-    k : float
-        Momentun of the bare electron propogator.
     alpha : float
         coupling constant.
     orderMax : int
         maximum order allowed for the simulation.
+    mcTMax : int
+        resets the loop with after a specified value 
     omega : float, optional
         frequency of the particle. The default is 1.
     m : float, optional
         mass of the particle. The default is 1.
+    
 
     Returns
     -------
@@ -162,7 +163,11 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
     countS=0
     countE=0
     countFE=0
-    orderList=[]
+    countZero=1
+    countTherm=1
+    countLoopNum=1
+    
+    #orderList=[]
     mcTime=[]
     mcT=1
     n=0
@@ -176,16 +181,22 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
         #print('q',qList)
         #print('m',mList)
         #print(n)
+        
+        
+        
         if 0<=x<pTau and n==0:
             #change time zero order
             #print('tau')
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
-            tauList.append(tau)
+            if thermal<=countTherm and countLoopNum==step:
+                tauList.append(tau)
+                mcTime.append(mcT)
+                mcT=0
             countT += i
             mList[2*n+1,0]=tau
             #print('tau')
-            mcTime.append(mcT)
-            mcT=0
+            
+            #orderList.append(n)  
         elif pTau<x<=pIns and n<orderMax:
             #insert update
             #print('ins')
@@ -194,6 +205,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
             
             countI+=i
             n+=i
+            #orderList.append(n)  
             #print(i,n,'in')
             
         elif pIns<x<=pRem and n>=1:
@@ -203,32 +215,63 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
             
             countR+=i
             n+=i
+            #orderList.append(n)  
             #print(i,n,'rem')
             
         elif pRem<=x<pSwap and n>=2:
             #swap update
             qList,mList,i=FPC.swap(qList,mList, n,omega,mu,m)
             countS+=i
+            #orderList.append(n)  
             
         elif pSwap<=x<pExt and n<=1:
             #extend 
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
-            tauList.append(tau)
+            if thermal<=countTherm and countLoopNum==step:
+                tauList.append(tau)
+                mcTime.append(mcT)
+                mcT=0
             countE += i
             mList[2*n+1,0]=tau
             #print('tau')
-            mcTime.append(mcT)
-            mcT=0
+            
+            #orderList.append(n)  
             
         elif pExt<=x<pFext and n<=1:
             #this is a different extend where it rescales the time values relitive to the new tau
             
-            qList,mList,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m)
+            qList,mList,tau,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m)
             countFE+=i
+            
+            if thermal<=countTherm and countLoopNum==step:
+                tauList.append(tau)
+                mcTime.append(mcT)
+                mcT=0
+                
+            
+            #orderList.append(n)  
+            
+            
+            
+        countLoopNum+=1
         
         
-        orderList.append(n)  
-        mcT+=1
+        #orderList.append(n)  
+        
+        
+        
+            
+        if thermal>countTherm:
+            countTherm+=1
+            
+        if thermal<=countTherm and countLoopNum==step:
+            if n==0:
+                countZero+=1
+            
+            mcT+=1
+            countLoopNum=0
+            
+    
         
         if mcT>mcTMax and mcTMax!=-1:
             #if mcT is set to -1 then this will never happen
@@ -241,13 +284,17 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,omega=1,m=1):
             mList[0:2,0]=[0,tau[0]]
             mList[0,0]=pExt
             mcTime.append(mcT)
+            countTherm=0
             n=0
             mcT=1
             
         
     mcTime.append(mcT)
     count=[countT,countI,-countR,countS,countE,countFE]
-    return tauList,mcTime,qList,orderList,count,mList
+    if debug==1:
+        return tauList,mcTime,qList,count,mList
+    else:
+        return tauList,mcTime
 
 #check out end of second talk
 #check how often a update is being rejected 
@@ -267,7 +314,7 @@ def data_Unravel(qList):
 def countZero(orderList):
     return np.count_nonzero(orderList==0)
 
-def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,thermal,skip,m=1):
+def calc(tauList,mctList,noBin,tauMax,pList,pExt,mu,zeroOrder,thermal,skip,m=1):
     '''
     
 
@@ -316,6 +363,8 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,thermal,skip,m=1):
     deltaTau=tauMax/noBin
     
     
+    #maybe see np.vectorize 
+    #would be something like if tLower<array<=tUpper: \return 1\else:\
     for i in range(noBin):
         count=0
         for j in range(thermal,len(timeArray),skip):
@@ -326,7 +375,7 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,thermal,skip,m=1):
             
      
     
-    epsK=k**2/(2*m)
+    epsK=pExt**2/(2*m)
     
     integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
     
@@ -336,8 +385,15 @@ def calc(tauList,mctList,noBin,tauMax,k,mu,zeroOrder,thermal,skip,m=1):
 
     return histBin        
         
+def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax):
+    dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
+        +'mu'+str(mu)+'a'+str(alpha)+'oM'+str(orderMax)+'lim'+str(mcTMax)
+    np.savetxt(path+'tList'+dumString,data[0])
+    np.savetxt(path+'mcTList'+dumString,data[1])
+    #np.savetxt(path+'orderList'+dumString,data[3])
+    return
         
-def histogram(data,title,xAxis,yAxis,scale,binNo):
+def histogram(data,title,xAxis,yAxis,scale,binNo,sample):
     mpl.title(title)
     mpl.yscale(scale)
     mpl.xlabel(xAxis)
