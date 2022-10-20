@@ -294,7 +294,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
     if debug==1:
         return tauList,mcTime,qList,count,mList
     else:
-        return tauList,mcTime
+        return tauList,mcTime,countZero
 
 #check out end of second talk
 #check how often a update is being rejected 
