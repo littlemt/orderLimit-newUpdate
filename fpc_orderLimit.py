@@ -120,10 +120,16 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
         maximum order allowed for the simulation.
     mcTMax : int
         resets the loop with after a specified value 
+    thermal : int
+        
     omega : float, optional
         frequency of the particle. The default is 1.
     m : float, optional
         mass of the particle. The default is 1.
+    debug : boolian
+        if 1 then the loop is in debug mode and reports a ton of data if 0 then
+        the loop only reports the nessisary data
+        
     
 
     Returns
@@ -144,9 +150,9 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
     qList=np.zeros((orderMax,3))
     mList=np.zeros((orderMax*2+2,2))
     
-    tau=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
-    tauList=[tau[0]]
-    mList[0:2,0]=[0,tau[0]]
+    tau,i=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
+    tauList=[tau]
+    mList[0:2,0]=[0,tau]
     mList[0,0]=pExt
     
     total=sum(P)
@@ -188,7 +194,10 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             #change time zero order
             #print('tau')
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
-            if thermal<=countTherm and countLoopNum==step:
+            
+            
+            if countLoopNum==step:
+                
                 tauList.append(tau)
                 mcTime.append(mcT)
                 mcT=0
@@ -227,10 +236,12 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
         elif pSwap<=x<pExt and n<=1:
             #extend 
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
+            
             if thermal<=countTherm and countLoopNum==step:
                 tauList.append(tau)
                 mcTime.append(mcT)
                 mcT=0
+                
             countE += i
             mList[2*n+1,0]=tau
             #print('tau')
@@ -253,7 +264,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             
             
             
-        countLoopNum+=1
+        
         
         
         #orderList.append(n)  
@@ -261,17 +272,23 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
         
         
             
-        if thermal>countTherm:
-            countTherm+=1
-            
+        
+        
         if thermal<=countTherm and countLoopNum==step:
+            #
+            
             if n==0:
                 countZero+=1
             
             mcT+=1
             countLoopNum=0
             
-    
+        if thermal>countTherm:
+            
+            countTherm+=1
+            
+        else:
+            countLoopNum+=1
         
         if mcT>mcTMax and mcTMax!=-1:
             #if mcT is set to -1 then this will never happen
