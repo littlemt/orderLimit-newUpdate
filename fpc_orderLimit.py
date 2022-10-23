@@ -147,13 +147,13 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
         insert, -remove].
 
     '''
-    qList=np.zeros((orderMax,3))
-    mList=np.zeros((orderMax*2+2,2))
+    qList=np.zeros((orderMax,5))
+    mList=np.zeros((orderMax*2+2,4))
     
     tau,i=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
     tauList=[tau]
     mList[0:2,0]=[0,tau]
-    mList[0,0]=pExt
+    mList[0,1:4]=[0,0,pExt]
     
     total=sum(P)
     pTau=P[0]/total
