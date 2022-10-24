@@ -309,7 +309,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
     mcTime.append(mcT)
     count=[countT,countI,-countR,countS,countE,countFE]
     if debug==1:
-        return tauList,mcTime,qList,count,mList
+        return tauList,mcTime,qList,count,mList,countZero
     else:
         return tauList,mcTime,countZero
 
@@ -402,9 +402,11 @@ def calc(tauList,mctList,noBin,tauMax,pList,pExt,mu,zeroOrder,thermal,skip,m=1):
 
     return histBin        
         
-def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax):
+def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,mctMax,therm,step):
     dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
-        +'mu'+str(mu)+'a'+str(alpha)+'oM'+str(orderMax)+'lim'+str(mcTMax)
+        +'mu'+str(mu)+'a'+str(alpha)+'oM'+str(orderMax)+'therm'+str(therm)+'step'+str(step)
+    if mctMax==-1:
+        dumString+='lim'+mctMax
     np.savetxt(path+'tList'+dumString,data[0])
     np.savetxt(path+'mcTList'+dumString,data[1])
     #np.savetxt(path+'orderList'+dumString,data[3])

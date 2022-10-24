@@ -110,10 +110,12 @@ def spliceInsert(index1,insList,recList,index2):
 def spliceInsertM(index1,insList,recList,index2):
     length=len(insList)
     
-    #print(recList[index1:index2],'rL i1 i2')
+    
     recList[index1+length-1:index2+length-1]=recList[index1:index2]
-    #print(recList)
+    
+    
     recList[index1:index1+length]=insList
+    
     return(recList)
 
     
@@ -130,7 +132,7 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     #and gets the endpoints and momentum.
     tauOne=mList[index1,0]
     tauOneP=mList[index1+1,0]
-    k=mList[index1,1:3]
+    k=mList[index1,1:4]
     
     if tauOneP<tauOne:
         dummy=tauOne
@@ -162,19 +164,21 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     
     tauListP=np.array([tauOne,tauTwo,tauTwoP,tauOneP])
     momListP=np.ndarray((3,3))
-    momListP=[k,k-qTwo,k]
+    
+    momListP=k,k-qTwo,k
     
     r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n)
     
     #print(index1,'i1')
     if r==1:
         
-        qList[n]=[tauTwo,tauTwoP,qTwo]
+        qList[n,:2]=[tauTwo,tauTwoP]
+        qList[n,2:]=qTwo
         #print(mList)
         
         mList[:,0]=spliceInsert(index1, tauListP, mList[:,0], 2*n+2)
         #print(momListP,index1)
-        mList[:,1]=spliceInsertM(index1, momListP, mList[:,1:3], 2*n+1)
+        mList[:,1:]=spliceInsertM(index1, momListP, mList[:,1:4], 2*n+1)
         #print(qList,'qL')
         #print(mList,'mL')
         #print('ins')
@@ -286,7 +290,7 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
         #print(qList)
         #print(mList[:,1])
         mList[:,0]=spliceRemove(index1-1,tauListRem,mList[:,0],2*n+2)
-        mList[:,1]=spliceRemove(index1-1, mListRem, mList[:,1:4], 2*n+1)
+        mList[:,1:]=spliceRemove(index1-1, mListRem, mList[:,1:4], 2*n+1)
         #print(mList)
         #print('rem')
         return qList,mList,-1
