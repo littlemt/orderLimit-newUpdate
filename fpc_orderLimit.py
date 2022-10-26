@@ -111,12 +111,12 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
     countE=0
     countFE=0
     
-    countTD=0
-    countID=0
-    countRD=0
-    countSD=0
-    countED=0
-    countFED=0
+    countTD=1
+    countID=1
+    countRD=1
+    countSD=1
+    countED=1
+    countFED=1
     
     countZero=0
     
@@ -124,7 +124,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
     countLoopNum=1
     
     #orderList=[]
-    mcTime=[]
+    mcTime=[0,1]
     mcT=1
     n=0
     #startTime=time.time()
@@ -149,8 +149,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
                 
             if countLoopNum==step and debug==1:
                 tauList.append(tau)
-                mcTime.append(mcT)
-                mcT=0
+                
             countT += i
             countTD+=1
             
@@ -194,8 +193,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
             
             if debug==1 and countLoopNum==step:
                 tauList.append(tau)
-                mcTime.append(mcT)
-                mcT=0
+                
                 
             countE += i
             countED+=1
@@ -213,8 +211,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
             
             if debug==1 and countLoopNum==step:
                 tauList.append(tau)
-                mcTime.append(mcT)
-                mcT=0
+                
                 
             
             #orderList.append(n)  
@@ -226,9 +223,12 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
         
         #orderList.append(n)  
         
-        
-        mcT+=1
-            
+        if debug==1:
+            mcT+=1
+            if n==0:
+                
+                mcTime[0]=(mcTime*mcTime[1]+mcT)/(mcTime+1)
+                mcTime[1]+=1
         
         
         if thermal<=countTherm and countLoopNum==step:
