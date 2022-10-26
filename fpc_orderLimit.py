@@ -361,13 +361,13 @@ def calc(tauList,mctList,noBin,tauMax,pExt,mu,zeroOrder,m=1):
 
     return histBin        
         
-def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,mctMax,therm,step):
+def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,therm,step,bins,seed,mctMax=-1):
     dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
-        +'mu'+str(mu)+'a'+str(alpha)+'oM'+str(orderMax)+'therm'+str(therm)+'step'+str(step)
-    if mctMax==-1:
+        +'mu'+str(mu)+'a'+str(alpha)+'oM'+str(orderMax)+'therm'+str(therm)+'step'+str(step)+'bins'+str(bins)+'seed'+str(seed)
+    if mctMax!=-1:
         dumString+='lim'+mctMax
-    np.savetxt(path+'tList'+dumString,data[0])
-    np.savetxt(path+'mcTList'+dumString,data[1])
+    np.savetxt(path+'histList'+dumString,data[:2])
+    np.savetxt(path+'countPercent'+dumString,data[2])
     #np.savetxt(path+'orderList'+dumString,data[3])
     return
         

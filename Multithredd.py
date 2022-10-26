@@ -17,12 +17,13 @@ import numpy as np
 
 #need to define a function that takes makes a new random generator 
 
-def loop(n):
+def loop(seed):
     #this code take in the random seed then parse the param file then run the loop
     
-    rng=np.random.default_rng(n)
+    
+    
     config=configparser.ConfigParser()
-
+    
     config.read('param.ini')
     
     tauMax=float(config.get('section_a','tauMax'))
@@ -34,31 +35,31 @@ def loop(n):
     mass=float(config.get('section_a','mass'))
     omega=float(config.get('section_a','omega'))
     orderMax=int(config.get('section_a','maxOrder'))
-    
-    
+    thermal=int(config.get('section_a','thermal'))
+    step=int(config.get('section_a','step'))
+    bins=int(config.get('section_a','bins'))
     
     #need to define all paramaters from file
     
     #run the code for the loop to collect the data
     
-    data=fcp.first_order(tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,mass)
-    
+    data=fcp.first_order(tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,seed,bins=bins,omega=omega,m=mass,debug=0)
+    fcp.saveData(data,'/Users/littlemt/Library/CloudStorage/OneDrive-UniversityofMassachusettsBoston/GradResearch/Plots',tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,bins,seed)
     return data
     #maybe just return the data
-    
 
 if __name__ =='__main__':
     
     config=configparser.ConfigParser()
 
     config.read('param.ini')
-    seed=float(config.get('section_b','seed'))
-    noThread=float(config.get('section_b','noThread'))
+    seed=int(config.get('section_b','seed'))
+    noThread=int(config.get('section_b','noThread'))
     
     
     rng=np.random.default_rng(seed)
     
-    rand=rng.uniform(0,1000,noThread)
+    rand=rng.integers(0,int(1E10),noThread)
     #gen random numbers same dim as number of threds
     #run the parallel using the random num as seeds
     
@@ -66,6 +67,7 @@ if __name__ =='__main__':
     with Pool(processes=(noThread)) as p:
         
         result=p.map(loop,rand)
+        
         
         
         
