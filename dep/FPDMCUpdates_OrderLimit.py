@@ -31,7 +31,7 @@ normVec=np.vectorize(norm)
 def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     '''
     this is a combination of the change tau and extend built into one
-
+ 
     Parameters
     ----------
     tau : TYPE

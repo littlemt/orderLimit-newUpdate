@@ -17,72 +17,6 @@ import matplotlib.pyplot as mpl
 nrg=nrng.default_rng()
 
 
-def full(tauMax,runTime,p,pExt,mu,k,alpha,orderMax,m=1):
-    
-    
-    tauList=[]
-    qList=np.ndarray((orderMax,5))
-    
-    total=sum(p)
-    
-    pTau=p[0]/total
-    pIns=p[1]/total
-    pRem=p[2]/total
-    pSwap=p[3]/total
-    
-    countT=0
-    countI=0
-    countR=[]
-    countS=0
-    tau=tauMax
-    mcTime=[]
-    mcT=1
-    
-    orderList=[]
-    runTime=runTime*3600+time.time()
-    
-    while time.time()<runTime:
-        
-        
-        order=FPC.order(qList)
-        orderList.append(order)
-        
-        
-        x=nrg.uniform()
-        
-        
-        
-        if x<pTau and order==0:
-            
-            mcTime.append(mcT)
-            tau,i=FPC.tauChange(pExt,tauMax,tau,mu,m)
-            tauList.append(tau)
-            countT+=i
-            mcT=0
-        elif pTau<=x<pTau+pIns:
-            
-            qList,i=FPC.insertProp(qList, tau, k, mu, alpha, order,pIns,pRem)
-            countI+=i
-            
-            
-        elif pTau+pIns<=x<pTau+pIns+pRem and order>=1:
-            
-            qList,i=FPC.removeProp(qList,tau, k, mu, alpha, order,pIns,pRem)
-            countR.append(i)
-            
-            
-        elif pTau+pIns+pRem<=x<1 and order>=2:
-            
-            qList,i=FPC.swap(qList, k, tauMax, mu, order)
-            countS+=i
-            
-        mcT+=1
-            
-            
-               
-    mcTime.append(mcT)
-    count=[countT,countI,countR,countS]
-    return tauList,mcTime,qList,count,orderList
         
 
 def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
@@ -98,7 +32,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     return tauList,count
 
 
-def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omega=1,m=1,debug=0):
+def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,bins=100,omega=1,m=1,debug=0):
     '''
     
 
@@ -147,6 +81,8 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
         insert, -remove].
 
     '''
+    
+    
     qList=np.zeros((orderMax,5))
     mList=np.zeros((orderMax*2+2,4))
     
@@ -154,6 +90,11 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
     tauList=[tau]
     mList[0:2,0]=[0,tau]
     mList[0,1:4]=[0,0,pExt]
+    
+    histList=np.zeros((bins,2))
+    histList[:,0]=np.linspace(0, tauMax,bins)
+    
+    deltaTau=tauMax/bins
     
     total=sum(P)
     pTau=P[0]/total
@@ -169,7 +110,16 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
     countS=0
     countE=0
     countFE=0
-    countZero=1
+    
+    countTD=0
+    countID=0
+    countRD=0
+    countSD=0
+    countED=0
+    countFED=0
+    
+    countZero=0
+    
     countTherm=1
     countLoopNum=1
     
@@ -196,12 +146,14 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             
             
-            if countLoopNum==step:
                 
+            if countLoopNum==step and debug==1:
                 tauList.append(tau)
                 mcTime.append(mcT)
                 mcT=0
             countT += i
+            countTD+=1
+            
             mList[2*n+1,0]=tau
             #print('tau')
             
@@ -213,6 +165,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             qList,mList,i=FPC.insertArc(qList,mList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu)
             
             countI+=i
+            countID+=1
             n+=i
             #orderList.append(n)  
             #print(i,n,'in')
@@ -223,6 +176,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             qList,mList,i=FPC.removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIns,alpha)
             
             countR+=i
+            countRD+=1
             n+=i
             #orderList.append(n)  
             #print(i,n,'rem')
@@ -231,18 +185,20 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             #swap update
             qList,mList,i=FPC.swap(qList,mList, n,omega,mu,m)
             countS+=i
+            countSD+=1
             #orderList.append(n)  
             
         elif pSwap<=x<pExt and n<=1:
             #extend 
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             
-            if thermal<=countTherm and countLoopNum==step:
+            if debug==1 and countLoopNum==step:
                 tauList.append(tau)
                 mcTime.append(mcT)
                 mcT=0
                 
             countE += i
+            countED+=1
             mList[2*n+1,0]=tau
             #print('tau')
             
@@ -253,8 +209,9 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             
             qList,mList,tau,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m)
             countFE+=i
+            countFE+=1
             
-            if thermal<=countTherm and countLoopNum==step:
+            if debug==1 and countLoopNum==step:
                 tauList.append(tau)
                 mcTime.append(mcT)
                 mcT=0
@@ -270,7 +227,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
         #orderList.append(n)  
         
         
-        
+        mcT+=1
             
         
         
@@ -280,38 +237,40 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,mcTMax,thermal,step,omeg
             if n==0:
                 countZero+=1
             
-            mcT+=1
+            histList[int(tau/(deltaTau)),1]+=1
+            
             countLoopNum=0
             
         if thermal>countTherm:
             
             countTherm+=1
-            
         else:
             countLoopNum+=1
+            
+            
         
         if mcT>mcTMax and mcTMax!=-1:
             #if mcT is set to -1 then this will never happen
             print('reset')
-            qList=np.zeros((orderMax,3))
-            mList=np.zeros((orderMax*2+2,2))
+            qList=np.zeros((orderMax,5))
+            mList=np.zeros((orderMax*2+2,4))
             
             tau=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
             tauList=[tau[0]]
             mList[0:2,0]=[0,tau[0]]
-            mList[0,0]=pExt
+            mList[0,0:]=pExt
             mcTime.append(mcT)
             countTherm=0
             n=0
             mcT=1
             
         
-    mcTime.append(mcT)
-    count=[countT,countI,-countR,countS,countE,countFE]
+    #mcTime.append(mcT)
+    countPer  =[countT/countTD,countI/countID,-countR/countRD,countS/countSD,countE/countED,countFE/countFED]
     if debug==1:
-        return tauList,mcTime,qList,count,mList,countZero
+        return tauList,mcTime,countZero,histList,qList,countPer,mList
     else:
-        return tauList,mcTime,countZero
+        return histList,countZero,countPer
 
 #check out end of second talk
 #check how often a update is being rejected 
@@ -331,7 +290,7 @@ def data_Unravel(qList):
 def countZero(orderList):
     return np.count_nonzero(orderList==0)
 
-def calc(tauList,mctList,noBin,tauMax,pList,pExt,mu,zeroOrder,thermal,skip,m=1):
+def calc(tauList,mctList,noBin,tauMax,pExt,mu,zeroOrder,m=1):
     '''
     
 
@@ -384,9 +343,9 @@ def calc(tauList,mctList,noBin,tauMax,pList,pExt,mu,zeroOrder,thermal,skip,m=1):
     #would be something like if tLower<array<=tUpper: \return 1\else:\
     for i in range(noBin):
         count=0
-        for j in range(thermal,len(timeArray),skip):
-            if i*deltaTau<=j[0]<(i+1)*deltaTau:
-                count+=j[1]
+        for j in range(len(timeArray)):
+            if i*deltaTau<=timeArray[j,0]<(i+1)*deltaTau:
+                count+=timeArray[j,1]
         
         histBin[i,1]=count
             
@@ -431,6 +390,13 @@ def histogram(data,title,xAxis,yAxis,scale,binNo,sample):
 #this would require the order function to be changed would need to store 
 #the order as a seperate variable or can remake the list every time change. 
 #can make paralell by using multipul seeds then running the simulation in parallel it looks like
+
+
+#modulo function
+#take floor tau/bin width put in bin 
+
+
+#note average mcTime between order 0
 
         
         
