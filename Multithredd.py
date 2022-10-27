@@ -44,9 +44,12 @@ def loop(seed):
     #run the code for the loop to collect the data
     
     data=fcp.first_order(tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,seed,bins=bins,omega=omega,m=mass,debug=0)
-    fcp.saveData(data,'/Users/littlemt/Library/CloudStorage/OneDrive-UniversityofMassachusettsBoston/GradResearch/Plots',tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,bins,seed)
+    
+    fcp.saveData(data,'/home/littlemt/Documents/plots_data/',tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,bins,seed)
     return data
     #maybe just return the data
+
+
 
 if __name__ =='__main__':
     
@@ -62,13 +65,22 @@ if __name__ =='__main__':
     rand=rng.integers(0,int(1E10),noThread)
     #gen random numbers same dim as number of threds
     #run the parallel using the random num as seeds
-    
+    bins=int(config.get('section_a','bins'))
     
     with Pool(processes=(noThread)) as p:
         
         result=p.map(loop,rand)
         
         
+        histArray=np.zeros((bins,3))
+        histArray[:,0]=result[0][0][:,0]
+        noZero=0
+        for i in result:
+            histArray[:,1]+=i[0][:,1]
+            noZero+=i[1]
+            
+        
+            
         
         
         

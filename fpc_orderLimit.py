@@ -266,11 +266,11 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
             
         
     #mcTime.append(mcT)
-    countPer  =[countT/countTD,countI/countID,-countR/countRD,countS/countSD,countE/countED,countFE/countFED]
+    count =np.array([countT/countTD,countI/countID,-countR/countRD,countS/countSD,countE/countED,countFE/countFED])
     if debug==1:
-        return tauList,mcTime,countZero,histList,qList,countPer,mList
+        return tauList,mcTime,countZero,histList,qList,count,mList
     else:
-        return histList,countZero,countPer
+        return histList,countZero,count
 
 #check out end of second talk
 #check how often a update is being rejected 
@@ -290,83 +290,30 @@ def data_Unravel(qList):
 def countZero(orderList):
     return np.count_nonzero(orderList==0)
 
-def calc(tauList,mctList,noBin,tauMax,pExt,mu,zeroOrder,m=1):
-    '''
+def calc(data,pExt,mu,zeroOrder,m=1,omega=1):
     
+    histdata,zeroOrder=data
+    tauMax=histdata[-1,0]
+    
+    deltaTau=data[0,1]
 
-    Parameters
-    ----------
-    tauList : TYPE
-        DESCRIPTION.
-    mctList : TYPE
-        DESCRIPTION.
-    noBin : int
-        number of bins.
-    tauMax : float
-        maximum allowed external time.
-    k : float
-        DESCRIPTION.
-    mu : float
-        DESCRIPTION.
-    zeroOrder : int
-        number of times in zero order.
-    m : float, optional
-        mass. The default is 1.
-
-    Returns
-    -------
-    histBin : array type (noBinx3)
-        returns an array of bins with collum one being the bins, collum two is
-        the count of the amount of updates that happen in the external time in that bin,
-        and collum three is the calculated value for that bin
-
-    '''
-    
-    len1=len(tauList)
-    len2=len(mctList)
-    
-    if len1!=len2:
-        print('List length not equal')
-        return
-    
-    timeArray=np.ndarray((len1,2))
-    timeArray[:,0]=tauList
-    timeArray[:,1]=mctList
-    
-    histBin=np.ndarray((noBin,3))
-    histBin[:,0]=np.linspace(0, tauMax,noBin)
-    
-    deltaTau=tauMax/noBin
-    
-    
-    #maybe see np.vectorize 
-    #would be something like if tLower<array<=tUpper: \return 1\else:\
-    for i in range(noBin):
-        count=0
-        for j in range(len(timeArray)):
-            if i*deltaTau<=timeArray[j,0]<(i+1)*deltaTau:
-                count+=timeArray[j,1]
-        
-        histBin[i,1]=count
-            
-     
-    
     epsK=pExt**2/(2*m)
     
     integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
     
-    for i in range(noBin):
+    
         #just realized this is implimented wrong i think
-        histBin[i,2]=-histBin[i,1]*integral/deltaTau/-zeroOrder
+    histdata[:,2]=-histdata[:,1]*integral/deltaTau/-zeroOrder
 
-    return histBin        
+    return histdata     
         
 def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,therm,step,bins,seed,mctMax=-1):
     dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
         +'mu'+str(mu)+'a'+str(alpha)+'oM'+str(orderMax)+'therm'+str(therm)+'step'+str(step)+'bins'+str(bins)+'seed'+str(seed)
     if mctMax!=-1:
         dumString+='lim'+mctMax
-    np.savetxt(path+'histList'+dumString,data[:2])
+    np.savetxt(path+'histList'+dumString,data[0])
+    
     np.savetxt(path+'countPercent'+dumString,data[2])
     #np.savetxt(path+'orderList'+dumString,data[3])
     return
