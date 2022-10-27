@@ -7,6 +7,7 @@ Created on Sun Jan 30 19:56:57 2022
 
 import numpy as np
 
+nrand=np.random 
 
 
 '''
@@ -45,7 +46,7 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m,seed):
         DESCRIPTION.
     '''
     
-    nrand=np.random.default_rng(seed)
+    
     
     if order!=0:
         
@@ -55,6 +56,7 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m,seed):
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
+        
         tauNew=t-np.log(R)/abs(eps-mu)
         
         
@@ -63,6 +65,7 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m,seed):
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
+        
         tauNew=-np.log(R)/abs(eps-mu)
     if tauNew>tauMax:
         return tau,0

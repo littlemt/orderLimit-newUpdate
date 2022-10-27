@@ -81,12 +81,12 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         insert, -remove].
 
     '''
-    nrg=nrng.default_rng(seed)
+    nrand=nrng.default_rng(seed)
     
     qList=np.zeros((orderMax,5))
     mList=np.zeros((orderMax*2+2,4))
     
-    tau,i=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
+    tau,i=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m,seed)
     tauList=[tau]
     mList[0:2,0]=[0,tau]
     mList[0,1:4]=[0,0,pExt]
@@ -132,7 +132,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     
     while time.time()<endTime:
         #if time.time()-startTime
-        x=nrg.uniform()
+        x=nrand.uniform()
         #print(pTau<x<pIns,x)
         #print('q',qList)
         #print('m',mList)
@@ -146,7 +146,6 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m,seed)
             
             
-                
             if countLoopNum==step and debug==1:
                 tauList.append(tau)
                 
@@ -223,13 +222,14 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         
         #orderList.append(n)  
         
-        if debug==1:
-            mcT+=1
-            if n==0:
-                
-                mcTime[0]=(mcTime*mcTime[1]+mcT)/(mcTime+1)
-                mcTime[1]+=1
         
+        
+        mcT+=1
+        if n==0:
+            
+            mcTime[0]=(mcTime[0]*mcTime[1]+mcT)/(mcTime[1]+1)
+            mcTime[1]+=1
+            
         
         if thermal<=countTherm and countLoopNum==step:
             #
@@ -241,6 +241,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
             countLoopNum=0
             
+            
         if thermal>countTherm:
             
             countTherm+=1
@@ -251,7 +252,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         
         if mcT>mcTMax and mcTMax!=-1:
             #if mcT is set to -1 then this will never happen
-            print('reset')
+            
             qList=np.zeros((orderMax,5))
             mList=np.zeros((orderMax*2+2,4))
             
@@ -268,8 +269,10 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     #mcTime.append(mcT)
     count =np.array([countT/countTD,countI/countID,-countR/countRD,countS/countSD,countE/countED,countFE/countFED])
     if debug==1:
+        print(mcTime)
         return tauList,mcTime,countZero,histList,qList,count,mList
     else:
+        print(mcTime)
         return histList,countZero,count
 
 #check out end of second talk
@@ -302,9 +305,9 @@ def calc(data,pExt,mu,zeroOrder,m=1,omega=1):
     
     
     #need to check this
-    histdata[:,2]=-histdata[:,1]*integral/deltaTau/-zeroOrder
+    
 
-    return histdata     
+    return -histdata[:,1]*integral/deltaTau/-zeroOrder     
         
 def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,therm,step,bins,seed,mctMax=-1):
     dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
