@@ -14,7 +14,7 @@ import matplotlib.pyplot as mpl
 
     
 
-nrg=nrng.default_rng()
+
 
 
         
@@ -32,7 +32,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     return tauList,count
 
 
-def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,bins=100,omega=1,m=1,debug=0):
+def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax=-1,bins=100,omega=1,m=1,debug=0):
     '''
     
 
@@ -81,7 +81,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
         insert, -remove].
 
     '''
-    
+    nrg=nrng.default_rng(seed)
     
     qList=np.zeros((orderMax,5))
     mList=np.zeros((orderMax*2+2,4))
@@ -143,7 +143,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
         if 0<=x<pTau and n==0:
             #change time zero order
             #print('tau')
-            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
+            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m,seed)
             
             
                 
@@ -161,7 +161,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
             #insert update
             #print('ins')
             
-            qList,mList,i=FPC.insertArc(qList,mList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu)
+            qList,mList,i=FPC.insertArc(qList,mList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu,seed)
             
             countI+=i
             countID+=1
@@ -172,7 +172,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
         elif pIns<x<=pRem and n>=1:
             #remove update
             #print('rem')
-            qList,mList,i=FPC.removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIns,alpha)
+            qList,mList,i=FPC.removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIns,alpha,seed)
             
             countR+=i
             countRD+=1
@@ -182,14 +182,14 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
             
         elif pRem<=x<pSwap and n>=2:
             #swap update
-            qList,mList,i=FPC.swap(qList,mList, n,omega,mu,m)
+            qList,mList,i=FPC.swap(qList,mList, n,omega,mu,m,seed)
             countS+=i
             countSD+=1
             #orderList.append(n)  
             
         elif pSwap<=x<pExt and n<=1:
             #extend 
-            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
+            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m,seed)
             
             if debug==1 and countLoopNum==step:
                 tauList.append(tau)
@@ -205,7 +205,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,mcTMax=-1,b
         elif pExt<=x<pFext and n<=1:
             #this is a different extend where it rescales the time values relitive to the new tau
             
-            qList,mList,tau,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m)
+            qList,mList,tau,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m,seed)
             countFE+=i
             countFE+=1
             
@@ -287,8 +287,7 @@ def data_Unravel(qList):
         
     return table
 
-def countZero(orderList):
-    return np.count_nonzero(orderList==0)
+
 
 def calc(data,pExt,mu,zeroOrder,m=1,omega=1):
     
@@ -302,7 +301,7 @@ def calc(data,pExt,mu,zeroOrder,m=1,omega=1):
     integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
     
     
-        #just realized this is implimented wrong i think
+    #need to check this
     histdata[:,2]=-histdata[:,1]*integral/deltaTau/-zeroOrder
 
     return histdata     
