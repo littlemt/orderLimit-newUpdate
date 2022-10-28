@@ -7,7 +7,7 @@ Created on Wed Aug 17 11:11:36 2022
 """
 
 from multiprocessing import Pool
-import fpc_orderLimit as fcp
+import fpc_orderLimit as fpc
 import configparser
 import numpy as np
 
@@ -43,7 +43,7 @@ def loop(seed):
     
     #run the code for the loop to collect the data
     
-    data=fcp.first_order(tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,seed,bins=bins,omega=omega,m=mass,debug=0)
+    data=fpc.first_order(tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,seed,bins=bins,omega=omega,m=mass,debug=0)
     
     print(seed)
     #fcp.saveData(data,'/home/littlemt/Documents/plots_data/',tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,bins,seed)
@@ -80,6 +80,13 @@ if __name__ =='__main__':
             histArray[:,1]+=i[0][:,1]
             noZero+=i[1]
             
+        
+        mass=float(config.get('section_a','mass'))
+        omega=float(config.get('section_a','omega'))
+        pExt=float(config.get('section_a','exMomentum'))
+        mu=float(config.get('section_a','mu'))
+    
+        histArray[:,2]=fpc.calc(histArray,pExt,mu,noZero,m=mass,omega=omega)
         
             
         
