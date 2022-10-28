@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Jan 30 19:56:57 2022
+
 @author: Milo Koyama Belmont
 """
 
@@ -9,21 +10,28 @@ import numpy as np
 
 nrand=np.random.default_rng()
 
-
 '''
 This code is going to be built from the ground up with an order limit in mind.
 It will also have the updates from https://youtu.be/-Zr4xYJWHbs
+
 insert, remove
 change time
 swap
+
+
 '''
 #G_0^tilde=np.exp(-tau*(epsilon-mu))
 #epsilon =k**2/(2*m)
 #D^tilde =np.exp(-omega*tau)   
 
+def norm(array):
+    return np.linalg.norm(array)
+normVec=np.vectorize(norm)
+
 def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     '''
     this is a combination of the change tau and extend built into one
+
     Parameters
     ----------
     tau : TYPE
@@ -38,14 +46,15 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
         DESCRIPTION.
     m : TYPE
         DESCRIPTION.
+
     Returns
     -------
     TYPE
         DESCRIPTION.
     int
         DESCRIPTION.
+
     '''
-    
     
     
     if order!=0:
@@ -56,7 +65,6 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
-        
         tauNew=t-np.log(R)/abs(eps-mu)
         
         
@@ -65,7 +73,6 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
         eps=pExt**2/(2*m)
         
         R=nrand.uniform()
-        
         tauNew=-np.log(R)/abs(eps-mu)
     if tauNew>tauMax:
         return tau,0
@@ -73,7 +80,6 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
         return tauNew,1
     
 def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
-    
     t=mList[2*order,0]
     
     eps=pExt**2/(2*m)
@@ -104,10 +110,12 @@ def spliceInsert(index1,insList,recList,index2):
 def spliceInsertM(index1,insList,recList,index2):
     length=len(insList)
     
-    #print(recList[index1:index2],'rL i1 i2')
+    
     recList[index1+length-1:index2+length-1]=recList[index1:index2]
-    #print(recList)
+    
+    
     recList[index1:index1+length]=insList
+    
     return(recList)
 
     
@@ -124,7 +132,7 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     #and gets the endpoints and momentum.
     tauOne=mList[index1,0]
     tauOneP=mList[index1+1,0]
-    k=mList[index1,1]
+    k=mList[index1,1:]
     
     if tauOneP<tauOne:
         dummy=tauOne
@@ -136,9 +144,8 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     #print(mList)
     #print(tauOne,tauOneP)
     tauTwo=nrand.uniform(tauOne,tauOneP)
-    print(tauTwo)
     
-    tauTwoP=tauTwo-np.log(nrand.uniform())/(mList[0,1]**2/(2*m)-mu)
+    tauTwoP=tauTwo-np.log(nrand.uniform())/(norm(mList[0,1:])**2/(2*m)-mu)
     
     #checks to see if it is inserting past maxium allowed value
     #print(tauTwoP,tauOneP)
@@ -149,26 +156,29 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     
     sigma=(m/(tauTwoP-tauTwo))**.5
     #does this have to be abs?
-    qTwo=nrand.normal(0,sigma)
+    qTwo=nrand.normal(0,sigma,3)
     
     
     
     
     
     tauListP=np.array([tauOne,tauTwo,tauTwoP,tauOneP])
-    momListP=np.array([k,k-qTwo,k])
+    momListP=np.ndarray((3,3))
+    
+    momListP=k,k-qTwo,k
     
     r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n)
     
     #print(index1,'i1')
     if r==1:
-        print('acceptI')
-        qList[n]=[tauTwo,tauTwoP,qTwo]
+        #print(1)
+        qList[n,:2]=[tauTwo,tauTwoP]
+        qList[n,2:]=qTwo
         #print(mList)
         
         mList[:,0]=spliceInsert(index1, tauListP, mList[:,0], 2*n+2)
         #print(momListP,index1)
-        mList[:,1]=spliceInsertM(index1, momListP, mList[:,1], 2*n+1)
+        mList[:,1:]=spliceInsertM(index1, momListP, mList[:,1:], 2*n+1)
         #print(qList,'qL')
         #print(mList,'mL')
         #print('ins')
@@ -179,7 +189,6 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
         return qList,mList,0
         
 def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omega,q,pRem,pIn,order):
-    
     #these may be missing |V^2|
     dum1=len(tauListIn)
     #print(tauListIn,'tLI')
@@ -200,13 +209,13 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRem)**2/(2*m)-mu)))
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*norm(q)**-2*(2*np.pi)**-3
+    wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
 
     pXY=pRem*(1/(order+1))
-    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
+    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(norm(q)**2/(2*m)*deltaTauIn))\
         /(2*np.pi*m/(deltaTauIn))**(3/2)
-    print(wIns/wRem*pYX/pXY)
+    #print(wIns*wRem/pYX*pXY)
     if nrand.uniform()<wIns/wRem*pYX/pXY:
         return 1,deltaTauListRem
     else:
@@ -230,7 +239,6 @@ def spliceRemove(index1,remList,recList,index2):
     return(recList)
     
 def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
-    
     #print("rem")
     
     #n=order(qList)
@@ -249,8 +257,8 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     
     
     
-    [tauOne,tauOneP,q]=qList[i,0:3]
-    
+    [tauOne,tauOneP]=qList[i,0:2]
+    q=qList[i,2:5]
     #print(qList,n)
     #print(tauOne,tauOneP)
     #print(mList,'m')
@@ -271,18 +279,18 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     #if i allow it to pick any arc then I have to make R a large calc
     
     #print(tauOne,tauOneP)    
-    r,tauListRem,mListRem =R_remove(qList,mList, index1, index2, m, mu, q, omega, pRem, pIn, n, alpha)
+    r,tauListRem,mListRem =R_remove(qList,mList, index1, index2, m, mu, norm(q), omega, pRem, pIn, n, alpha)
     #print(qList,index1,index2)
     #print(mList,'here')
     if r==1:
         #print(qList)
         #print(mListRem)
         qList[i:n-1]=qList[i+1:n]
-        qList[n-1]=np.zeros(3)
+        qList[n-1]=np.zeros(5)
         #print(qList)
         #print(mList[:,1])
         mList[:,0]=spliceRemove(index1-1,tauListRem,mList[:,0],2*n+2)
-        mList[:,1]=spliceRemove(index1-1, mListRem, mList[:,1], 2*n+1)
+        mList[:,1:]=spliceRemove(index1-1, mListRem, mList[:,1:4], 2*n+1)
         #print(mList)
         #print('rem')
         return qList,mList,-1
@@ -290,12 +298,11 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
         #print('r')
         return qList,mList,0
     
-def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha,seed):
-    
+def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     #index1 is the first vertex point
     #index2 is the final xertex 
     #print('rRem')
-    momentumList=mList[:,1]
+    momentumList=mList[:,1:4]
     tauList=mList[:,0]
     
     #print(index1,index2)
@@ -318,17 +325,19 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha,seed):
         momentumListRem=np.array([momentumListIn[0]])
         #print(momentumListRem)
         #print(momentumListIn)
+        momentumListRemN=norm(momentumListRem)
     else:
         #breaking here when swap is used
         #print(momentumListIn)
         momentumListRem=np.delete(momentumListIn, (1,-2))
         momentumListRem[1:-1]+=q
+        momentumListRemN=normVec(momentumListRem)
     
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     #print(len(deltaTauListIn),len(momentumListIn),len(momentumListRem))
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(momentumListIn**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRem)**2/(2*m)-mu)))
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
+    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
 
     pXY=pRem*(1/(order))
     pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
@@ -367,13 +376,13 @@ def findEndPoint(qList,tau):
         b=a[0],0
     
     tauP=qList[b]
-    q=qList[a[0],2]
+    q=qList[a[0],2:5]
     
     return tauP,q,a,b
     
         
 def swap (qList,mList,order,omega,mu,m):
-    
+    #updated has bugs
     
     #print('swap')
     
@@ -407,13 +416,13 @@ def swap (qList,mList,order,omega,mu,m):
     tauB,q2,i2,i2p=findEndPoint(qList, tauTwo)
     
     
-    k1=mList[a,1]
+    k1=mList[a,1:3]
     k1P=swapDecTree(tauOne, tauTwo, tauA, tauB, k1, q1, q2)
     
     x=nrand.uniform()
     
-    wX=np.exp(-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(k1**2/(2*m)-mu))
-    wY=np.exp(-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(k1P**2/(2*m)-mu))
+    wX=np.exp(-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(norm(k1)**2/(2*m)-mu))
+    wY=np.exp(-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(norm(k1P)**2/(2*m)-mu))
     r=wX/wY
     
     if x<r:
@@ -459,7 +468,6 @@ def swapDecTree(t1,t2,ta,tb,k1,q1,q2):
     
     
 def changeP(pList):
-    
     #import list of allowed p values
     
     i=nrand.integers(0,len(pList))
