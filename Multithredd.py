@@ -45,7 +45,7 @@ def loop(seed):
     
     data=fpc.first_order(tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,seed,bins=bins,omega=omega,m=mass,debug=0)
     
-    print(seed)
+    
     #fcp.saveData(data,'/home/littlemt/Documents/plots_data/',tauMax,runTime,upProbs,pExt,mu,alpha,orderMax,thermal,step,bins,seed)
     return data
     #maybe just return the data
@@ -87,6 +87,8 @@ if __name__ =='__main__':
         mu=float(config.get('section_a','mu'))
     
         histArray[:,2]=fpc.calc(histArray,pExt,mu,noZero,m=mass,omega=omega)
+        
+        
         
             
         

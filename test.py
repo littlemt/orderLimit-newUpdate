@@ -9,75 +9,12 @@ Created on Mon Aug 22 13:19:13 2022
 import configparser
 import numpy as np
 
+
+
 rng=np.random.default_rng()
 
+def uni():
+    return rng.uniform()
 
 
-a=rng.uniform(1,10,100)
-b=rng.integers(0,100,100)
 
-
-def testfun(num,lower,upper):
-    if lower<num<=upper:
-        return 1
-    else:
-        return 0
-    
-def testfun2(num,skip):
-    if
-    
-    
-vecFun=np.vectorize(testfun)
-vecFun2=np.vectorize(testfun2)
-
-print(a)
-print(vecFun(a,5,10))
-print(b)
-print(vecFun2(b,6))
-'''
-
-
-j=rng.integers(0,12)
-print(j,'order')
-a=np.linspace(0, j,j+1)
-c=np.zeros(14)
-c[:j+1]=a
-c[j+1]=j+1
-e=c
-
-
-l=rng.integers(0,j+1)
-for i in range(100):
-    
-    
-    
-    print(l,'random')
-    
-    
-    dum=np.random.uniform(c[l],c[l+1])
-    dum2=np.random.uniform(dum,c[l+1])
-                          
-                          
-    b=np.array([c[l],dum,dum2,c[l+1]])
-    d=np.array([c[l],c[l+1]])
-    
-    
-    print(c,'ins')
-    length=len(b)
-    index1=l
-    index2=j+2
-    #print(c[index1+length:index2+length],c[index1:index2])
-    c[index1+length-2:index2+length-2]=c[index1:index2]
-    c[index1+1:index1+length-1]=b[1:-1]
-    i+=1
-    print(c,'rem')
-    
-    
-    
-    length=len(d)
-    c[index1:index1+length]=d
-    c[index1+length:index2]=c[index1+length+2:index2+2]
-    c[index2:]=0
-    
-    print(c)
-    '''

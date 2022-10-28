@@ -7,7 +7,7 @@ Created on Sun Jan 30 19:56:57 2022
 
 import numpy as np
 
-nrand=np.random 
+nrand=np.random.default_rng()
 
 
 '''
@@ -21,7 +21,7 @@ swap
 #epsilon =k**2/(2*m)
 #D^tilde =np.exp(-omega*tau)   
 
-def changeTau(tau,tauMax,mList,pExt,order,mu,m,seed):
+def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     '''
     this is a combination of the change tau and extend built into one
     Parameters
@@ -72,8 +72,8 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m,seed):
     else:
         return tauNew,1
     
-def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m,seed):
-    nrand=np.random.default_rng(seed)
+def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
+    
     t=mList[2*order,0]
     
     eps=pExt**2/(2*m)
@@ -113,8 +113,8 @@ def spliceInsertM(index1,insList,recList,index2):
     
 
 
-def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu,seed):
-    nrand=np.random.default_rng(seed)
+def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
+    
 
     
     index1=nrand.integers(0,2*n+1)
@@ -129,13 +129,14 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu,seed):
     if tauOneP<tauOne:
         dummy=tauOne
         tauOne=tauOneP
-        tauOneP=tauOne
+        tauOneP=dummy
         
     #does the calculation of the new arc
     
     #print(mList)
     #print(tauOne,tauOneP)
     tauTwo=nrand.uniform(tauOne,tauOneP)
+    print(tauTwo)
     
     tauTwoP=tauTwo-np.log(nrand.uniform())/(mList[0,1]**2/(2*m)-mu)
     
@@ -157,11 +158,11 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu,seed):
     tauListP=np.array([tauOne,tauTwo,tauTwoP,tauOneP])
     momListP=np.array([k,k-qTwo,k])
     
-    r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n,seed)
+    r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n)
     
     #print(index1,'i1')
     if r==1:
-        
+        print('acceptI')
         qList[n]=[tauTwo,tauTwoP,qTwo]
         #print(mList)
         
@@ -177,8 +178,8 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu,seed):
         #print('fail')
         return qList,mList,0
         
-def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omega,q,pRem,pIn,order,seed):
-    nrand=np.random.default_rng(seed)
+def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omega,q,pRem,pIn,order):
+    
     #these may be missing |V^2|
     dum1=len(tauListIn)
     #print(tauListIn,'tLI')
@@ -205,7 +206,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     pXY=pRem*(1/(order+1))
     pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
         /(2*np.pi*m/(deltaTauIn))**(3/2)
-    #print(wIns/wRem*pYX/pXY)
+    print(wIns/wRem*pYX/pXY)
     if nrand.uniform()<wIns/wRem*pYX/pXY:
         return 1,deltaTauListRem
     else:
@@ -228,8 +229,8 @@ def spliceRemove(index1,remList,recList,index2):
     #print(recList)
     return(recList)
     
-def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha,seed):
-    nrand=np.random.default_rng(seed)
+def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
+    
     #print("rem")
     
     #n=order(qList)
@@ -270,7 +271,7 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha,seed):
     #if i allow it to pick any arc then I have to make R a large calc
     
     #print(tauOne,tauOneP)    
-    r,tauListRem,mListRem =R_remove(qList,mList, index1, index2, m, mu, q, omega, pRem, pIn, n, alpha,seed)
+    r,tauListRem,mListRem =R_remove(qList,mList, index1, index2, m, mu, q, omega, pRem, pIn, n, alpha)
     #print(qList,index1,index2)
     #print(mList,'here')
     if r==1:
@@ -290,7 +291,7 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha,seed):
         return qList,mList,0
     
 def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha,seed):
-    nrand=np.random.default_rng(seed)
+    
     #index1 is the first vertex point
     #index2 is the final xertex 
     #print('rRem')
@@ -371,8 +372,8 @@ def findEndPoint(qList,tau):
     return tauP,q,a,b
     
         
-def swap (qList,mList,order,omega,mu,m,seed):
-    nrand=np.random.default_rng(seed)
+def swap (qList,mList,order,omega,mu,m):
+    
     
     #print('swap')
     
@@ -457,8 +458,8 @@ def swapDecTree(t1,t2,ta,tb,k1,q1,q2):
 
     
     
-def changeP(pList,seed):
-    nrand=np.random.default_rng(seed)
+def changeP(pList):
+    
     #import list of allowed p values
     
     i=nrand.integers(0,len(pList))
