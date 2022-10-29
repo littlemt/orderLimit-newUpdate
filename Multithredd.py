@@ -10,6 +10,7 @@ from multiprocessing import Pool
 import fpc_orderLimit as fpc
 import configparser
 import numpy as np
+from matplotlib import pyplot as mpl
 
 
 

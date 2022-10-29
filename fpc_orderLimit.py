@@ -297,12 +297,12 @@ def data_Unravel(qList):
 
 
 
-def calc(data,pExt,mu,zeroOrder,m=1,omega=1):
+def calc(histdata,pExt,mu,zeroOrder,m=1,omega=1):
     
-    histdata,zeroOrder=data
+    
     tauMax=histdata[-1,0]
     
-    deltaTau=data[0,1]
+    deltaTau=histdata[0,1]
 
     epsK=pExt**2/(2*m)
     
