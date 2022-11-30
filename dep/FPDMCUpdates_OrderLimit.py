@@ -26,7 +26,64 @@ swap
 
 def norm(array):
     return np.linalg.norm(array)
-normVec=np.vectorize(norm)
+
+def normVec(array):
+    dumArray=np.zeros(len(array))
+    for i in range(len(array)):
+        dumArray[i]=np.linalg.norm(array[i])
+    return dumArray
+
+#following are the change in tau Components
+
+def tauReweight(tau,eps_p,mu):
+    '''
+    
+
+    Parameters
+    ----------
+    tau : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+        
+        
+    notes 
+    distributions need to test
+    power law b*t^c (prob not a polynomial)
+    fast growing b*t^(c*t)
+    exponential3 b*e^(c*t)
+    
+    this is probobly good to test first
+    these constants should probobly depend on eps_p-mu
+    or maybe alpha+mu
+    
+    do i want it to get just under tau max or do i care?
+    
+    
+    
+    e^2*tau does not let it get small enough 
+    maybe its rejecting everything that is small?
+    scaled(tauNew)/tauOld 
+    unless the acceptance ratio is scaled(tauNew)/tauNew
+    
+    tau^2 returned way to sharp a graph with scaled(tauNew)/tauNew
+    
+    linear scaling seems to work
+    
+    need to check acceptance ratio e^(eps-mu)(tauOld-tauNew)
+    
+    
+
+    '''
+    return np.exp(tau*(eps_p-mu))
+
+def tauProb(R,eps_p,mu):
+    #need to define the rabdin tau generating function
+    return 20*R
+    
 
 def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     '''
@@ -56,27 +113,31 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
 
     '''
     
+    eps=pExt**2/(2*m)
+    R=nrand.uniform()
     
     if order!=0:
         
         
         t=mList[2*order,0]
         
-        eps=pExt**2/(2*m)
         
         R=nrand.uniform()
-        tauNew=t-np.log(R)/abs(eps-mu)
+        tauNew=t+tauProb(R,eps,mu)
         
         
     else:
-        t=tau
-        eps=pExt**2/(2*m)
         
-        R=nrand.uniform()
-        tauNew=-np.log(R)/abs(eps-mu)
-    if tauNew>tauMax:
+        tauNew=tauProb(R,eps,mu)
+        
+    
+    if tauNew>tauMax or nrand.uniform()>1:
+        #np.exp((eps-mu)*(tau-tauNew))*tauScale(tauNew)/tauScale(tau)
+        
         return tau,0
+    
     else:
+        
         return tauNew,1
     
 def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
@@ -171,7 +232,7 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     
     #print(index1,'i1')
     if r==1:
-        #print(1)
+        #print('i',n)
         qList[n,:2]=[tauTwo,tauTwoP]
         qList[n,2:]=qTwo
         #print(mList)
@@ -283,6 +344,7 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     #print(qList,index1,index2)
     #print(mList,'here')
     if r==1:
+        #print('r',n)
         #print(qList)
         #print(mListRem)
         qList[i:n-1]=qList[i+1:n]
@@ -323,23 +385,24 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     if len(momentumListIn)==3:
         #print('testing')
         momentumListRem=np.array([momentumListIn[0]])
-        #print(momentumListRem)
+        #print(momentumListRem,1)
         #print(momentumListIn)
         momentumListRemN=norm(momentumListRem)
     else:
         #breaking here when swap is used
         #print(momentumListIn)
-        momentumListRem=np.delete(momentumListIn, (1,-2))
+        momentumListRem=np.delete(momentumListIn, (1,-2),0)
         momentumListRem[1:-1]+=q
+        #print(momentumListRem,2)
         momentumListRemN=normVec(momentumListRem)
     
     alphaTildaSq=2*np.pi*alpha*2**.5
     
-    #print(len(deltaTauListIn),len(momentumListIn),len(momentumListRem))
+    #print(np.shape(deltaTauListIn),np.shape(normVec(momentumListIn)**2/2/m-mu),np.shape(np.exp(-omega*(deltaTauIn))))
     wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
     wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
 
-    pXY=pRem*(1/(order))
+    pXY=pRem*(1/(order+1))
     pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
         /(2*np.pi*m/(deltaTauIn))**(3/2)
     
@@ -376,7 +439,7 @@ def findEndPoint(qList,tau):
         b=a[0],0
     
     tauP=qList[b]
-    q=qList[a[0],2:5]
+    q=qList[a[0],2:]
     
     return tauP,q,a,b
     
@@ -416,7 +479,7 @@ def swap (qList,mList,order,omega,mu,m):
     tauB,q2,i2,i2p=findEndPoint(qList, tauTwo)
     
     
-    k1=mList[a,1:3]
+    k1=mList[a,1:]
     k1P=swapDecTree(tauOne, tauTwo, tauA, tauB, k1, q1, q2)
     
     x=nrand.uniform()
@@ -433,7 +496,7 @@ def swap (qList,mList,order,omega,mu,m):
         
         #mList[:,0] remains unchanged
         
-        mList[a,1]=k1P
+        mList[a,1:]=k1P
         
         
         

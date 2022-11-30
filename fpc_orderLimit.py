@@ -34,7 +34,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
 
 def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax=-1,bins=100,omega=1,m=1,debug=0):
     '''
-    
+    data=first_order(20,1,[100,10,10,.1,1,0],0,-6,5,2,1000000,500,42)
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     
     qList=np.zeros((orderMax,5))
     mList=np.zeros((orderMax*2+2,4))
-    
+    mList[1,0]=.00001
     tau,i=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
     tauList=[tau]
     mList[0:2,0]=[0,tau]
@@ -213,16 +213,6 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             if debug==1 and countLoopNum==step:
                 tauList.append(tau)
                 
-                
-            
-            #orderList.append(n)  
-            
-            
-            
-        
-        
-        
-        #orderList.append(n)  
         
         
         
@@ -236,13 +226,14 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         
         if thermal<=countTherm and countLoopNum==step:
             #
+            #print(n)
             if debug==1:
                 orderList.append(n)
             
             if n==0:
                 countZero+=1
             
-            histList[int(tau/(deltaTau)),1]+=1
+            histList[int(tau/(deltaTau)),1]+=1/FPC.tauReweight(tau,pExt,mu)
             
             countLoopNum=0
             
@@ -302,17 +293,14 @@ def calc(histdata,pExt,mu,zeroOrder,m=1,omega=1):
     
     tauMax=histdata[-1,0]
     
-    deltaTau=histdata[0,1]
+    deltaTau=histdata[1,0]
 
     epsK=pExt**2/(2*m)
     
     integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
     
-    
-    #need to check this
-    
 
-    return -histdata[:,1]*integral/deltaTau/-zeroOrder     
+    return histdata[:,1]*integral/(deltaTau*(-zeroOrder))     
         
 def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,therm,step,bins,seed,mctMax=-1):
     dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
