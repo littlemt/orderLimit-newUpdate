@@ -31,6 +31,6 @@ def normVec1(array):
 a=np.array([[1,2,3],[1,2,3],[1,2,3]])
 b=np.array([[1,2,3],[1,2,3],[1,2,3]],dtype=object)
 
-print(norm([1,2,3]))
+print(np.arange(1+1))
 print(normVec(b))
 print(normVec1(a))

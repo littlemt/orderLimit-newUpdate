@@ -42,7 +42,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         Maximum allowed tau value allowed to be picked.
     runTime : float
         Total time the simulation should run.
-    P : list or array of size 4
+    P : list or array of size 6
         List defining the probabliitys for each update to be picked each loop.
     pExt : float
         External momentum of the system.
@@ -81,6 +81,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         insert, -remove].
 
     '''
+    
     nrand=nrng.default_rng(seed)
     
     qList=np.zeros((orderMax,5))
@@ -93,6 +94,8 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     
     histList=np.zeros((bins,2))
     histList[:,0]=np.linspace(0, tauMax,bins)
+    
+    orderList=np.zeros(orderMax+1)
     
     deltaTau=tauMax/bins
     
@@ -123,7 +126,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     countTherm=1
     countLoopNum=1
     
-    orderList=[]
+    
     mcTime=[0,1]
     mcT=1
     n=0
@@ -204,6 +207,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #orderList.append(n)  
             
         elif pExt<=x<pFext and n<=1:
+            #update is broken and i am too lazy to fix
             #this is a different extend where it rescales the time values relitive to the new tau
             
             qList,mList,tau,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m)
@@ -228,7 +232,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #
             #print(n)
             if debug==1:
-                orderList.append(n)
+                print(1)
             
             if n==0:
                 countZero+=1
@@ -236,6 +240,9 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             histList[int(tau/(deltaTau)),1]+=1/FPC.tauReweight(tau,pExt,mu)
             
             countLoopNum=0
+            
+            
+            orderList[n]+=1
             
             
         if thermal>countTherm:
@@ -269,22 +276,65 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         return tauList,countZero,histList,qList,count,mList,orderList
     else:
         
-        return histList,countZero,count
+        return histList,countZero,count,orderList
 
 #check out end of second talk
 #check how often a update is being rejected 
 #check to see if first order is working 
 
 
-def data_Unravel(qList):
-    length=len(qList)
+def plot1(data,p,mu):
+    hist,zero,count,order=data
     
-    table=np.ndarray((length,3))
-    for i in range(length):
-        q,tau1,tau2=qList[i]
-        table[i]=[q,tau1,tau2]
-        
-    return table
+    mpl.xlabel('tau')
+    mpl.ylabel('log[-G(p=0,tau)]')
+    mpl.title('mu='+str(mu))
+    mpl.scatter(hist[:,0],np.log(calc(hist,p,mu,zero)))
+    
+    mpl.show()
+    
+    mpl.xlabel('order')
+    mpl.ylabel('% of time')
+    mpl.bar(np.arange(len(order)),order/sum(order))
+    
+    mpl.show()
+    
+    mpl.bar(['mcTime','insert %','remove %','swap %'],[count[0],count[2]*100,count[3]*100,count[4]*100])
+    mpl.show()
+    
+def plot0(data,p,mu,m=1):
+    hist,zero,count,order=data
+    
+    mpl.xlabel('tau')
+    mpl.ylabel('log[-G(p=0,tau)]')
+    mpl.title('mu='+str(mu))
+    mpl.scatter(hist[:,0],np.log(calc(hist,p,mu,zero)))
+    mpl.plot(hist[:,0],-hist[:,0]*(p/2*m-mu),color='orange')
+    
+    mpl.show()
+    
+def plot(data,p,mu,m=1):
+    hist,zero,count,order=data
+    
+    mpl.xlabel('tau')
+    mpl.ylabel('log[-G(p=0,tau)]')
+    mpl.title('mu='+str(mu))
+    mpl.scatter(hist[:,0],np.log(calc(hist,p,mu,zero)))
+    
+    
+    mpl.show()
+    
+    mpl.xlabel('order')
+    mpl.ylabel('% of time')
+    mpl.bar(np.arange(len(order)),order/sum(order))
+    
+    mpl.show()
+    
+    mpl.bar(['insert %','remove %','swap %'],[count[2]*100,count[3]*100,count[4]*100])
+    mpl.show()
+    
+    
+    
 
 
 
