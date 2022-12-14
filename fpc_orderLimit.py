@@ -11,6 +11,7 @@ import time
 import numpy as np
 import numpy.random as nrng
 import matplotlib.pyplot as mpl
+from scipy.special import erf
 
     
 
@@ -32,7 +33,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     return tauList,count
 
 
-def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax=-1,bins=100,omega=1,m=1,debug=0):
+def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax=-1,bins=500,omega=1,m=1,debug=0):
     '''
     data=first_order(20,1,[100,10,10,.1,1,0],0,-6,5,2,1000000,500,42)
 
@@ -237,7 +238,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             if n==0:
                 countZero+=1
             
-            histList[int(tau/(deltaTau)),1]+=1/FPC.tauReweight(tau,pExt,mu)
+            histList[int(tau/(deltaTau)),1]+=np.exp(tau*mu)
             
             countLoopNum=0
             
@@ -282,20 +283,25 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
 #check how often a update is being rejected 
 #check to see if first order is working 
 
+def firstOrderSolution(tau,mu,omega=1,m=1):
+    return -np.exp(tau*(mu-omega))*m**.5*(2*(omega*tau)**.5+np.exp(omega*tau)*np.pi**.5*(2*omega*tau-1)*erf((omega*tau)**.5))/(32**.5*omega**(1.5)*np.pi**1.5)
 
-def plot1(data,p,mu):
+def plot1(data,p,mu,m=1):
     hist,zero,count,order=data
     
     mpl.xlabel('tau')
     mpl.ylabel('log[-G(p=0,tau)]')
     mpl.title('mu='+str(mu))
-    mpl.scatter(hist[:,0],np.log(calc(hist,p,mu,zero)))
+    mpl.scatter(hist[:,0]+.5*hist[1,0],np.log(-calc(hist,p,mu,zero)))
+    
+    mpl.plot(hist[1:,0],np.log(np.exp(-(p**2/(2*m)-mu)*hist[1:,0])-firstOrderSolution(hist[1:,0], mu)),color='orange')
     
     mpl.show()
     
     mpl.xlabel('order')
     mpl.ylabel('% of time')
     mpl.bar(np.arange(len(order)),order/sum(order))
+    mpl.text(-.5,.8,'delta MC order 0 ='+str(count[0]))
     
     mpl.show()
     
@@ -305,13 +311,26 @@ def plot1(data,p,mu):
 def plot0(data,p,mu,m=1):
     hist,zero,count,order=data
     
+    x=hist[:,0]+.5*hist[1,0]
+    y=np.log(-calc(hist,p,mu,zero))
+             
     mpl.xlabel('tau')
     mpl.ylabel('log[-G(p=0,tau)]')
     mpl.title('mu='+str(mu))
-    mpl.scatter(hist[:,0],np.log(calc(hist,p,mu,zero)))
-    mpl.plot(hist[:,0],-hist[:,0]*(p/2*m-mu),color='orange')
+    mpl.scatter(x,y,zorder=1,label='Data')
+    mpl.plot(x,-x*(p/2/m-mu),color='orange',zorder=2,label='Exact')
+    m,b=np.polyfit(x,y,deg=1)
+    mpl.plot(x,m*x+b,color='red',zorder=3,label='regression')
+    mpl.title('reg line: '+'y='+str(m)+'x'+str(b))
+    mpl.legend()
     
     mpl.show()
+    
+    mpl.scatter(x,calc(hist,p,mu,zero))
+    mpl.plot(x,-np.exp(-x*(p/2/m-mu)),color='red',zorder=2)
+    
+    mpl.show()
+    
     
 def plot(data,p,mu,m=1):
     hist,zero,count,order=data
@@ -327,6 +346,7 @@ def plot(data,p,mu,m=1):
     mpl.xlabel('order')
     mpl.ylabel('% of time')
     mpl.bar(np.arange(len(order)),order/sum(order))
+    mpl.text(.5,.5,'delta MC order 0 ='+str(count[0]))
     
     mpl.show()
     
@@ -350,7 +370,7 @@ def calc(histdata,pExt,mu,zeroOrder,m=1,omega=1):
     integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
     
 
-    return histdata[:,1]*integral/(deltaTau*(-zeroOrder))     
+    return -histdata[:,1]*integral/(deltaTau*(-zeroOrder))
         
 def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,therm,step,bins,seed,mctMax=-1):
     dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
@@ -388,7 +408,7 @@ def histogram(data,title,xAxis,scale,binNo):
 #take floor tau/bin width put in bin 
 
 
-#note average mcTime between order 0
+#data=first_order(20,.001,[100,0,0,0,0,0],0,-6,5,0,1,1,42)
 
         
         
