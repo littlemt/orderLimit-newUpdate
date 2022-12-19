@@ -236,7 +236,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
                 print(1)
             
             if n==0:
-                countZero+=1
+                countZero+=np.exp(tau*mu)
             
             histList[int(tau/(deltaTau)),1]+=np.exp(tau*mu)
             
@@ -289,12 +289,19 @@ def firstOrderSolution(tau,mu,omega=1,m=1):
 def plot1(data,p,mu,m=1):
     hist,zero,count,order=data
     
+    x=hist[:,0]+.5*hist[1,0]
+    y=np.log(-calc(hist,p,mu,zero))
+             
     mpl.xlabel('tau')
     mpl.ylabel('log[-G(p=0,tau)]')
     mpl.title('mu='+str(mu))
-    mpl.scatter(hist[:,0]+.5*hist[1,0],np.log(-calc(hist,p,mu,zero)))
+    mpl.scatter(x,y,zorder=1,label='Data')
+    mpl.plot(x,np.log(np.exp(-(p**2/(2*m)-mu)*x)-firstOrderSolution(x, mu)),color='orange',zorder=2,label='Exact')
+    m,b=np.polyfit(x[int(.25*len(x)):],y[int(.25*len(x)):],deg=1)
+    mpl.plot(x[int(.25*len(x)):],m*x[int(.25*len(x)):]+b,color='red',zorder=3,label='regression')
+    mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
+    mpl.legend()
     
-    mpl.plot(hist[1:,0],np.log(np.exp(-(p**2/(2*m)-mu)*hist[1:,0])-firstOrderSolution(hist[1:,0], mu)),color='orange')
     
     mpl.show()
     
@@ -318,10 +325,10 @@ def plot0(data,p,mu,m=1):
     mpl.ylabel('log[-G(p=0,tau)]')
     mpl.title('mu='+str(mu))
     mpl.scatter(x,y,zorder=1,label='Data')
-    mpl.plot(x,-x*(p/2/m-mu),color='orange',zorder=2,label='Exact')
+    mpl.plot(x,-x*(p/2/m-mu),color='orange',zorder=3,label='Exact')
     m,b=np.polyfit(x,y,deg=1)
-    mpl.plot(x,m*x+b,color='red',zorder=3,label='regression')
-    mpl.title('reg line: '+'y='+str(m)+'x'+str(b))
+    mpl.plot(x,m*x+b,color='red',zorder=2,label='regression')
+    mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
     mpl.legend()
     
     mpl.show()
@@ -338,7 +345,7 @@ def plot(data,p,mu,m=1):
     mpl.xlabel('tau')
     mpl.ylabel('log[-G(p=0,tau)]')
     mpl.title('mu='+str(mu))
-    mpl.scatter(hist[:,0],np.log(calc(hist,p,mu,zero)))
+    mpl.scatter(hist[:,0],np.log(-calc(hist,p,mu,zero)))
     
     
     mpl.show()

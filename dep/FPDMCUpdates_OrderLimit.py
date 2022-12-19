@@ -117,7 +117,7 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     R=nrand.uniform()
     
     if order!=0:
-        
+        #currently not working need to fix
         
         t=mList[2*order,0]
         
