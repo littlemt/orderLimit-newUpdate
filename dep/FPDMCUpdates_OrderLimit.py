@@ -84,8 +84,57 @@ def tauProb(R,eps_p,mu):
     #need to define the rabdin tau generating function
     return 20*R
     
-
 def changeTau(tau,tauMax,mList,pExt,order,mu,m):
+    '''
+    this is a combination of the change tau and extend built into one
+
+    Parameters
+    ----------
+    tau : TYPE
+        DESCRIPTION.
+    tauMax : TYPE
+        DESCRIPTION.
+    qList : TYPE
+        DESCRIPTION.
+    pExt : TYPE
+        DESCRIPTION.
+    order : TYPE
+        DESCRIPTION.
+    m : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+    int
+        DESCRIPTION.
+
+    '''
+    
+    eps=pExt**2/(2*m)
+    
+    
+       
+        
+    t=mList[2*order,0]
+    
+    
+    R=nrand.uniform()
+    tauNew=t-np.log(R)/abs(eps-mu)
+    
+        
+        
+    
+    if tauNew>tauMax or nrand.uniform()>1:
+        #np.exp((eps-mu)*(tau-tauNew))*tauScale(tauNew)/tauScale(tau)
+        
+        return tau,0
+    
+    else:
+        
+        return tauNew,1
+def changeTauRe(tau,tauMax,mList,pExt,order,mu,m):
     '''
     this is a combination of the change tau and extend built into one
 
@@ -277,7 +326,16 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(norm(q)**2/(2*m)*deltaTauIn))\
         /(2*np.pi*m/(deltaTauIn))**(3/2)
     #print(wIns*wRem/pYX*pXY)
-    if nrand.uniform()<wIns/wRem*pYX/pXY:
+    
+    if wIns*pYX>wRem*pXY:
+        R=1
+    elif wIns*pYX>wRem*pXY*1e10:
+        R=0
+    else:
+        R=wIns*pYX/wRem/pXY
+    
+    
+    if nrand.uniform()<R:
         return 1,deltaTauListRem
     else:
         return 0,deltaTauListRem
@@ -422,7 +480,14 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     
     #print(wRem/wIns*pYX/pXY)
     
-    if nrand.uniform()<wRem/wIns*pYX/pXY:
+    if wIns*pYX<wRem*pXY:
+        R=1
+    elif wIns*pXY<wRem*pYX*1e10:
+        R=0
+    else:
+        R=wRem/wIns*pYX/pXY
+    
+    if nrand.uniform()<R:
         return 1,tauListRem,momentumListRem
     else:
         return 0,tauListRem,momentumListRem
@@ -486,7 +551,13 @@ def swap (qList,mList,order,omega,mu,m):
     
     wX=np.exp(-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(norm(k1)**2/(2*m)-mu))
     wY=np.exp(-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(norm(k1P)**2/(2*m)-mu))
-    r=wX/wY
+    
+    if wX>wY:
+        r=1
+    elif wX>wY*1e10:
+        r=0
+    else:
+        r=wX/wY
     
     if x<r:
         

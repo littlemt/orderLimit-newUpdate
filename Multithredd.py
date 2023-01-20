@@ -77,9 +77,14 @@ if __name__ =='__main__':
         histArray=np.zeros((bins,3))
         histArray[:,0]=result[0][0][:,0]
         noZero=0
+        count=np.zeros(12)
+        order=np.zeros(bins+1)
         for i in result:
             histArray[:,1]+=i[0][:,1]
             noZero+=i[1]
+            count+=i[2]
+            order+=i[3]
+            
             
         
         mass=float(config.get('section_a','mass'))
@@ -87,7 +92,23 @@ if __name__ =='__main__':
         pExt=float(config.get('section_a','exMomentum'))
         mu=float(config.get('section_a','mu'))
     
-        histArray[:,2]=fpc.calc(histArray,pExt,mu,noZero,m=mass,omega=omega)
+        mpl.xlabel('tau')
+        mpl.ylabel('log[-G(p=0,tau)]')
+        mpl.title('mu='+str(mu))
+        mpl.scatter(histArray[:,0],np.log(-fpc.calc(histArray,pExt,mu,noZero)))
+        
+        
+        mpl.show()
+        
+        mpl.xlabel('order')
+        mpl.ylabel('% of time')
+        mpl.bar(np.arange(len(order)),order/sum(order))
+        mpl.title('delta MC order 0 ='+str(count[0]))
+        
+        mpl.show()
+        
+        mpl.bar(['insert %','remove %','swap %'],[count[3]*100/count[4],count[5]*100/count[6],count[7]*100]/count[8])
+        mpl.show()
         
         
         

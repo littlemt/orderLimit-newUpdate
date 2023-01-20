@@ -147,7 +147,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         if 0<=x<pTau and n==0:
             #change time zero order
             #print('tau')
-            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
+            tau,i = FPC.changeTauRe(tau,tauMax,mList,pExt,n,mu,m)
             
             
             if countLoopNum==step and debug==1:
@@ -271,7 +271,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         
     #mcTime.append(mcT)
-    count =np.array([mcTime[0],countT,countI/countID,-countR/countRD,countS/countSD,countE,countFE/countFED])
+    count =np.array([mcTime[0],mcTime[1],countT,countI,countID,-countR,countRD,countS,countSD,countE,countFE,countFED])
     if debug==1:
         
         return tauList,countZero,histList,qList,count,mList,orderList
@@ -308,7 +308,7 @@ def plot1(data,p,mu,m=1):
     mpl.xlabel('order')
     mpl.ylabel('% of time')
     mpl.bar(np.arange(len(order)),order/sum(order))
-    mpl.text(-.5,.8,'delta MC order 0 ='+str(count[0]))
+    mpl.title('delta MC order 0 ='+str(count[0]))
     
     mpl.show()
     
@@ -334,7 +334,9 @@ def plot0(data,p,mu,m=1):
     mpl.show()
     
     mpl.scatter(x,calc(hist,p,mu,zero))
-    mpl.plot(x,-np.exp(-x*(p/2/m-mu)),color='red',zorder=2)
+    mpl.plot(x,-np.exp(x*mu),color='red',zorder=2)
+    mpl.xlabel('tau')
+    mpl.ylabel('G')
     
     mpl.show()
     
@@ -353,7 +355,7 @@ def plot(data,p,mu,m=1):
     mpl.xlabel('order')
     mpl.ylabel('% of time')
     mpl.bar(np.arange(len(order)),order/sum(order))
-    mpl.text(.5,.5,'delta MC order 0 ='+str(count[0]))
+    mpl.title('delta MC order 0 ='+str(count[0]))
     
     mpl.show()
     
