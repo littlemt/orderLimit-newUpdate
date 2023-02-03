@@ -11,6 +11,11 @@ import fpc_orderLimit as fpc
 import configparser
 import numpy as np
 from matplotlib import pyplot as mpl
+import os
+import shutil as st
+
+from matplotlib import rc 
+rc('text', usetex=True)
 
 
 
@@ -28,7 +33,7 @@ def loop(seed):
     config.read('param.ini')
     
     tauMax=float(config.get('section_a','tauMax'))
-    runTime=float(config.get('section_a','runTime'))
+    runTime=int(config.get('section_a','runTime'))
     upProbs=np.int16(config.get('section_a','updateProb').split(','))
     pExt=float(config.get('section_a','exMomentum'))
     mu=float(config.get('section_a','mu'))
@@ -74,17 +79,25 @@ if __name__ =='__main__':
         result=p.map(loop,rand)
         
         
+        
         histArray=np.zeros((bins,3))
         histArray[:,0]=result[0][0][:,0]
-        noZero=0
-        count=np.zeros(12)
-        order=np.zeros(bins+1)
-        for i in result:
-            histArray[:,1]+=i[0][:,1]
-            noZero+=i[1]
-            count+=i[2]
-            order+=i[3]
-            
+        noZero=np.zeros(noThread)
+        count=np.zeros((12,noThread))
+        order=np.zeros((bins+1,noThread))
+        
+        
+        mass=float(config.get('section_a','mass'))
+        omega=float(config.get('section_a','omega'))
+        pExt=float(config.get('section_a','exMomentum'))
+        mu=float(config.get('section_a','mu'))
+        
+        histR=np.ndarray((bins,noThread))
+        for i in range(noThread):
+            noZero[i]=result[i][1]
+            histR[:,i]=fpc.calc(result[i][0][:,1],histArray[-1,0],histArray[1,0],pExt,mu,result[i][1])
+            count=result[i][2]
+            order=result[i][3]
             
         
         mass=float(config.get('section_a','mass'))
@@ -92,11 +105,25 @@ if __name__ =='__main__':
         pExt=float(config.get('section_a','exMomentum'))
         mu=float(config.get('section_a','mu'))
     
-        mpl.xlabel('tau')
-        mpl.ylabel('log[-G(p=0,tau)]')
-        mpl.title('mu='+str(mu))
-        mpl.scatter(histArray[:,0],np.log(-fpc.calc(histArray,pExt,mu,noZero)))
         
+        
+        for i in range(bins):
+            histArray[i,1]=np.average(histR[i])
+            histArray[i,2]=np.std(histR[i])/noThread**.5 
+            
+        directory='./Plots/O'+config.get('section_a','maxOrder')+'_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'/'
+        os.mkdir(directory)
+        
+        np.savetxt(directory+'avgData',histArray,delimiter=',')
+        np.savetxt(directory+'binData',histR,delimiter=',')
+        np.savetxt(directory+'zeros', noZero,delimiter=',')
+        np.savetxt(directory+'counts',count,delimiter=',')
+        
+        mpl.xlabel(r'$\tau$', fontsize=18)
+        mpl.ylabel(r'$\log[-G(p=0,\tau)]$')
+        mpl.title(r'$\mu=$'+str(mu))
+        mpl.errorbar(histArray[:,0],np.log(-histArray[:,1]),yerr=histArray[:,2] ,fmt='o')
+        mpl.savefig(directory+'tauvsLogG_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
         
         mpl.show()
         
@@ -104,10 +131,13 @@ if __name__ =='__main__':
         mpl.ylabel('% of time')
         mpl.bar(np.arange(len(order)),order/sum(order))
         mpl.title('delta MC order 0 ='+str(count[0]))
-        
+        mpl.savefig(directory+'orderHist'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
+
         mpl.show()
         
-        mpl.bar(['insert %','remove %','swap %'],[count[3]*100/count[4],count[5]*100/count[6],count[7]*100]/count[8])
+        mpl.bar(['insert %','remove %','swap %'],[count[3]*100/count[4],count[5]*100/count[6],count[7]*100/count[8]])
+        mpl.savefig(directory+'accProb'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
+
         mpl.show()
         
         

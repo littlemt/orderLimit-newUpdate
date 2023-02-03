@@ -12,6 +12,8 @@ import numpy as np
 import numpy.random as nrng
 import matplotlib.pyplot as mpl
 from scipy.special import erf
+from matplotlib import rc 
+rc('text', usetex=True)
 
     
 
@@ -33,7 +35,7 @@ def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
     return tauList,count
 
 
-def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax=-1,bins=500,omega=1,m=1,debug=0):
+def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax=-1,bins=100,omega=1,m=1,debug=0):
     '''
     data=first_order(20,1,[100,10,10,.1,1,0],0,-6,5,2,1000000,500,42)
 
@@ -132,9 +134,12 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     mcT=1
     n=0
     #startTime=time.time()
-    endTime=runTime*3600+time.time()
+    #endTime=runTime*3600+time.time()
     
-    while time.time()<endTime:
+    
+    #change this to a for loop
+    for i in range(runTime):
+    #while time.time()<endTime:
         #if time.time()-startTime
         x=nrand.uniform()
         #print(pTau<x<pIns,x)
@@ -290,7 +295,7 @@ def plot1(data,p,mu,m=1):
     hist,zero,count,order=data
     
     x=hist[:,0]+.5*hist[1,0]
-    y=np.log(-calc(hist,p,mu,zero))
+    y=np.log(-calc(hist[:,1],hist[-1,0],hist[1,0],p,mu,zero))
              
     mpl.xlabel('tau')
     mpl.ylabel('log[-G(p=0,tau)]')
@@ -312,8 +317,8 @@ def plot1(data,p,mu,m=1):
     
     mpl.show()
     
-    mpl.bar(['mcTime','insert %','remove %','swap %'],[count[0],count[2]*100,count[3]*100,count[4]*100])
-    mpl.show()
+    mpl.bar(['insert %','remove %'],[count[3]*100/count[4],count[5]*100/count[6]])
+    mpl.show()#fix the monte carlo time in this
     
 def plot0(data,p,mu,m=1):
     hist,zero,count,order=data
@@ -321,9 +326,9 @@ def plot0(data,p,mu,m=1):
     x=hist[:,0]+.5*hist[1,0]
     y=np.log(-calc(hist,p,mu,zero))
              
-    mpl.xlabel('tau')
+    mpl.xlabel(r'$\tau$')
     mpl.ylabel('log[-G(p=0,tau)]')
-    mpl.title('mu='+str(mu))
+    mpl.title(r'$\mu$='+str(mu))
     mpl.scatter(x,y,zorder=1,label='Data')
     mpl.plot(x,-x*(p/2/m-mu),color='orange',zorder=3,label='Exact')
     m,b=np.polyfit(x,y,deg=1)
@@ -333,9 +338,9 @@ def plot0(data,p,mu,m=1):
     
     mpl.show()
     
-    mpl.scatter(x,calc(hist,p,mu,zero))
+    mpl.scatter(x,calc(hist[:,1],hist[-1,0],hist[1,0],p,mu,zero))
     mpl.plot(x,-np.exp(x*mu),color='red',zorder=2)
-    mpl.xlabel('tau')
+    mpl.xlabel(r'$\tau$')
     mpl.ylabel('G')
     
     mpl.show()
@@ -345,9 +350,9 @@ def plot(data,p,mu,m=1):
     hist,zero,count,order=data
     
     mpl.xlabel('tau')
-    mpl.ylabel('log[-G(p=0,tau)]')
-    mpl.title('mu='+str(mu))
-    mpl.scatter(hist[:,0],np.log(-calc(hist,p,mu,zero)))
+    mpl.ylabel(r'$\log[-G(p=0,\tau)]$')
+    mpl.title(r'$\mu$='+str(mu))
+    mpl.scatter(hist[:,0],np.log(-calc(hist[:,1],hist[-1,0],hist[1,0],p,mu,zero)))
     
     
     mpl.show()
@@ -367,19 +372,16 @@ def plot(data,p,mu,m=1):
 
 
 
-def calc(histdata,pExt,mu,zeroOrder,m=1,omega=1):
+def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
     
-    
-    tauMax=histdata[-1,0]
-    
-    deltaTau=histdata[1,0]
+
 
     epsK=pExt**2/(2*m)
     
     integral=1/(epsK-mu)*(np.exp(-(epsK-mu)*tauMax)-1)
     
 
-    return -histdata[:,1]*integral/(deltaTau*(-zeroOrder))
+    return -histdata*integral/(deltaTau*(-zeroOrder))
         
 def saveData(data,path,tauMax,runTime,P,pExt,mu,alpha,orderMax,therm,step,bins,seed,mctMax=-1):
     dumString='tM'+str(tauMax)+'rT'+str(runTime)+'hr'+'prob'+str(P)+'mom'+str(pExt)\
