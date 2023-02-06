@@ -1,4 +1,4 @@
 
 *.pdf
-Plots/O0_m-6.0_P=1000,1,1,1,1,0_p0.0_a5_rt1000000000/avgData
+Plots/*
 Plots/.DS_Store
