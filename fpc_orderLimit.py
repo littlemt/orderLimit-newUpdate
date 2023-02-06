@@ -320,27 +320,31 @@ def plot1(data,p,mu,m=1):
     mpl.bar(['insert %','remove %'],[count[3]*100/count[4],count[5]*100/count[6]])
     mpl.show()#fix the monte carlo time in this
     
-def plot0(data,p,mu,m=1):
-    hist,zero,count,order=data
+def plot0(hist,p,mu,directory='./',m=1):
     
-    x=hist[:,0]+.5*hist[1,0]
-    y=np.log(-calc(hist,p,mu,zero))
+    
+    x=hist[:,0]
+    y=hist[:,1]
+    yerr=hist[:,2]
+    
              
     mpl.xlabel(r'$\tau$')
     mpl.ylabel('log[-G(p=0,tau)]')
     mpl.title(r'$\mu$='+str(mu))
-    mpl.scatter(x,y,zorder=1,label='Data')
+    mpl.errorbar(x,np.log(-hist[:,1]),yerr=yerr/y ,fmt='o',label='Data')
     mpl.plot(x,-x*(p/2/m-mu),color='orange',zorder=3,label='Exact')
-    m,b=np.polyfit(x,y,deg=1)
+    m,b=np.polyfit(x,np.log(-y),deg=1)
     mpl.plot(x,m*x+b,color='red',zorder=2,label='regression')
     mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
+    
     mpl.legend()
     
     mpl.show()
     
-    mpl.scatter(x,calc(hist[:,1],hist[-1,0],hist[1,0],p,mu,zero))
-    mpl.plot(x,-np.exp(x*mu),color='red',zorder=2)
+    mpl.errorbar(x,-hist[:,1] ,yerr=hist[:,2] ,fmt='o',label='Data')
+    mpl.plot(hist[:,0],np.exp(hist[:,0]*mu),color='red',zorder=2)
     mpl.xlabel(r'$\tau$')
+    mpl.ylim(0,1)
     mpl.ylabel('G')
     
     mpl.show()
