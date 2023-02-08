@@ -22,82 +22,7 @@ rc('text', usetex=True)
 
 
 #need to define a function that takes makes a new random generator 
-def plot0(hist,p,mu,directory='./',m=1):
-    
-    
-    x=hist[:,0]
-    y=hist[:,1]
-    yerr=hist[:,2]
-    
-             
-    mpl.xlabel(r'$\tau$')
-    mpl.ylabel('log[-G(p=0,tau)]')
-    mpl.title(r'$\mu$='+str(mu))
-    mpl.errorbar(x,np.log(-hist[:,1]),yerr=yerr/y ,fmt='o',label='Data')
-    mpl.plot(x,-x*(p/2/m-mu),color='orange',zorder=3,label='Exact')
-    m,b=np.polyfit(x,np.log(-y),deg=1)
-    mpl.plot(x,m*x+b,color='red',zorder=2,label='regression')
-    mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
-    mpl.savefig(directory+'tauvsLogG0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    mpl.legend()
-    
-    mpl.show()
-    
-    mpl.errorbar(x,-hist[:,1] ,yerr=hist[:,2] ,fmt='o',label='Data')
-    mpl.plot(hist[:,0],np.exp(hist[:,0]*mu),color='red',zorder=2)
-    mpl.xlabel(r'$\tau$')
-    mpl.ylim(0,1)
-    mpl.ylabel('G')
-    mpl.savefig(directory+'tauvsG0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    mpl.show()
-    
-    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu)),yerr=hist[:,2] ,fmt='o',label='Data')
-    mpl.xlabel(r'$\tau$')
-    mpl.ylabel('G')
-    mpl.savefig(directory+'tauvsG0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    mpl.show()
-    
 
-
-def plot1(hist,count,order,p,mu,directory='./',m=1):
-    
-    
-    x=hist[:,0]
-    y=hist[:,1]
-    yerr=hist[:,2]
-             
-    mpl.xlabel('tau')
-    mpl.ylabel('log[-G(p=0,tau)]')
-    mpl.title('mu='+str(mu))
-    mpl.errorbar(x,np.log(-hist[:,1]),yerr=yerr/y ,fmt='o',label='Data')
-    mpl.plot(x,np.log(np.exp(-(p**2/(2*m)-mu)*x)-fpc.firstOrderSolution(x, mu)),color='orange',zorder=2,label='Exact')
-    m,b=np.polyfit(x[int(.25*len(x)):],np.log(-y[int(.25*len(x)):]),deg=1)
-    mpl.plot(x[int(.25*len(x)):],m*x[int(.25*len(x)):]+b,color='red',zorder=3,label='regression')
-    mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
-    mpl.legend()
-    mpl.savefig(directory+'tauvsLogG1_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    
-    
-    mpl.show()
-    
-    mpl.xlabel('order')
-    mpl.ylabel('% of time')
-    mpl.bar(np.arange(len(order)),order/sum(order))
-    mpl.title('delta MC order 0 ='+str(count[0]))
-    mpl.savefig(directory+'ordPlot'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    
-    mpl.show()
-    
-    mpl.bar(['insert %','remove %'],[count[3]*100/count[4],count[5]*100/count[6]])
-    mpl.savefig(directory+'accProb_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    mpl.show()#fix the monte carlo time in this
-    
-    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))-fpc.firstOrderSolution(x,mu),yerr=hist[:,2] ,fmt='o',label='Data')
-    mpl.xlabel(r'$\tau$')
-    mpl.ylabel('G')
-    mpl.savefig(directory+'tauvsG0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    mpl.show()
-    
     
 def loop(seed):
     #this code take in the random seed then parse the param file then run the loop
@@ -197,31 +122,11 @@ if __name__ =='__main__':
         np.savetxt(directory+'counts',count,delimiter=',')
         
         if int(config.get('section_a','maxOrder'))==0:
-            plot0(histArray,pExt,mu,directory=directory)
+            fpc.plot0(histArray,pExt,mu,directory=directory)
         elif int(config.get('section_a','maxOrder'))==1:
-            plot1(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
+            fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
         else:
-            
-            mpl.xlabel(r'$\tau$', fontsize=18)
-            mpl.ylabel(r'$\log[-G(p=0,\tau)]$')
-            mpl.title(r'$\mu=$'+str(mu))
-            mpl.errorbar(histArray[:,0],np.log(-histArray[:,1]),yerr=histArray[:,2] ,fmt='o')
-            mpl.savefig(directory+'tauvsLogG_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-            
-            mpl.show()
-            
-            mpl.xlabel('order')
-            mpl.ylabel('% of time')
-            mpl.bar(np.arange(len(order)),order/sum(order))
-            mpl.title('delta MC order 0 ='+str(count[0]))
-            mpl.savefig(directory+'orderHist'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    
-            mpl.show()
-            
-            mpl.bar(['insert %','remove %','swap %'],[count[3]*100/count[4],count[5]*100/count[6],count[7]*100/count[8]])
-            mpl.savefig(directory+'accProb'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    
-            mpl.show()
+            fpc.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
         
         
         

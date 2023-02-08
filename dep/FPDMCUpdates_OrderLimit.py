@@ -134,6 +134,8 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     else:
         
         return tauNew,1
+    
+    
 def changeTauRe(tau,tauMax,mList,pExt,order,mu,m):
     '''
     this is a combination of the change tau and extend built into one
