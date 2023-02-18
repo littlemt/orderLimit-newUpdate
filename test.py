@@ -9,14 +9,31 @@ Created on Mon Aug 22 13:19:13 2022
 import configparser
 import numpy as np
 import matplotlib.pyplot as plt
+from  math import floor 
 
 
 
 rng=np.random.default_rng()
 
-x=np.linspace(1,20,20)
-y=x**1.5
-err=rng.uniform(0,2,20)**2
+tauMax=15
+bins=29
+deltaTau=tauMax/(bins+1)
+print(deltaTau)
 
-plt.errorbar(x,y,yerr=err,fmt='o')
-plt.savefig('test.pdf')
+x=np.linspace(deltaTau,tauMax-deltaTau,bins)
+print(x)
+
+
+
+hist=np.zeros((bins,2))
+hist[:,0]=x
+h=[]
+for t in np.arange(0,15,.25):
+    
+    h.append(t)
+    hist[floor(t/deltaTau),1]+=1
+    print(t,int(t/deltaTau))
+    
+
+
+plt.scatter(x,hist[:,1])

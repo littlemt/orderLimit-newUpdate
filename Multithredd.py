@@ -84,6 +84,7 @@ if __name__ =='__main__':
         pExt=float(config.get('section_a','exMomentum'))
         mu=float(config.get('section_a','mu'))
         maxOrder=int(config.get('section_a','maxOrder'))
+        alpha=float(config.get('section_a','alpha'))
         
         histArray=np.zeros((bins,3))
         histArray[:,0]=result[0][0][:,0]
@@ -124,7 +125,7 @@ if __name__ =='__main__':
         if int(config.get('section_a','maxOrder'))==0:
             fpc.plot0(histArray,pExt,mu,directory=directory)
         elif int(config.get('section_a','maxOrder'))==1:
-            fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
+            fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,alpha,directory=directory)
         else:
             fpc.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
         
