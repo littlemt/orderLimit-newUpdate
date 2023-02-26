@@ -84,11 +84,12 @@ if __name__ =='__main__':
         pExt=float(config.get('section_a','exMomentum'))
         mu=float(config.get('section_a','mu'))
         maxOrder=int(config.get('section_a','maxOrder'))
+        alpha=float(config.get('section_a','alpha'))
         
         histArray=np.zeros((bins,3))
         histArray[:,0]=result[0][0][:,0]
         noZero=np.zeros(noThread)
-        count=np.zeros((12,noThread))
+        count=np.zeros((13,noThread))
         order=np.zeros((maxOrder+1,noThread))
         countAvg=np.zeros(12)
         orderAvg=np.zeros(maxOrder+1)
@@ -96,22 +97,24 @@ if __name__ =='__main__':
         
        
         histR=np.ndarray((bins,noThread))
+        
         for i in range(noThread):
+            #this loop unpacks the output from the pool
             noZero[i]=result[i][1]
             histR[:,i]=fpc.calc(result[i][0][:,1],histArray[-1,0],histArray[1,0],pExt,mu,result[i][1])
             count[:,i]=result[i][2]
             order[:,i]=result[i][3]
             
     
-        for i in range(maxOrder+1):
-            orderAvg[i]=np.average(order[i])
-            
-        for i in range(12):
-            countAvg[i]=np.average(count[i])
         
-        for i in range(bins):
-            histArray[i,1]=np.average(histR[i])
-            histArray[i,2]=np.std(histR[i])/noThread**.5 
+        orderAvg=np.average(order,axis=1)
+            
+        
+        countAvg=np.average(count,axis=1)
+        
+    
+        histArray[:,1]=np.average(histR,axis=1)
+        histArray[:,2]=np.std(histR,axis=1)/noThread**.5 
             
         directory='./Plots/noRe_O'+config.get('section_a','maxOrder')+'_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_T'+config.get('section_a','tauMax')+'/'
         os.mkdir(directory)
@@ -124,7 +127,7 @@ if __name__ =='__main__':
         if int(config.get('section_a','maxOrder'))==0:
             fpc.plot0(histArray,pExt,mu,directory=directory)
         elif int(config.get('section_a','maxOrder'))==1:
-            fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
+            fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,alpha,directory=directory)
         else:
             fpc.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
         

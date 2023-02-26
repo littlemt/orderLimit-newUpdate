@@ -98,7 +98,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     mList[0,1:4]=[0,0,pExt]
     
     histList=np.zeros((bins,2))
-    histList[:,0]=np.linspace(0, tauMax,bins)
+    histList[:,0]=np.linspace(0, tauMax,bins,endpoint=False)
     
     orderList=np.zeros(orderMax+1)
     
@@ -220,7 +220,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
             qList,mList,tau,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m)
             countFE+=i
-            countFE+=1
+            countFED+=1
             
             if debug==1 and countLoopNum==step:
                 tauList.append(tau)
@@ -278,7 +278,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         
     #mcTime.append(mcT)
-    count =np.array([mcTime[0],mcTime[1],countT,countI,countID,-countR,countRD,countS,countSD,countE,countFE,countFED])
+    count =np.array([mcTime[0],mcTime[1],countT,countI,countID,-countR,countRD,countS,countSD,countE,countED,countFE,countFED])
     if debug==1:
         
         return tauList,countZero,histList,qList,count,mList,orderList
@@ -290,11 +290,11 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
 #check how often a update is being rejected 
 #check to see if first order is working 
 
-def firstOrderSolution(tau,mu,omega=1,m=1):
-    return -np.exp(tau*(mu-omega))*m**.5*(2*(omega*tau)**.5+np.exp(omega*tau)*np.pi**.5*(2*omega*tau-1)*erf((omega*tau)**.5))/(32**.5*omega**(1.5)*np.pi**1.5)
+def firstOrderSolution(tau,mu,alpha,omega=1,m=1):
+    return -2*alpha*2**.5*np.pi*np.exp(tau*(mu-omega))*m**.5*(2*(omega*tau)**.5+np.exp(omega*tau)*np.pi**.5*(2*omega*tau-1)*erf((omega*tau)**.5))/(32**.5*omega**(1.5)*np.pi**1.5)
 
 
-def plot1(hist,count,order,p,mu,directory='./',m=1):
+def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     config.read('param.ini')
     
     x=hist[:,0]
@@ -304,8 +304,8 @@ def plot1(hist,count,order,p,mu,directory='./',m=1):
     mpl.xlabel(r'$\tau$')
     mpl.ylabel('log[-G(p=0,tau)]')
     mpl.title(r'$mu=$'+str(mu))
-    mpl.errorbar(x,np.log(-hist[:,1]),yerr=yerr/y ,fmt='o',label='Data')
-    mpl.plot(x,np.log(np.exp(-(p**2/(2*m)-mu)*x)-firstOrderSolution(x, mu)),color='orange',zorder=2,label='Exact')
+    mpl.errorbar(x,np.log(-hist[:,1]),yerr=np.abs(yerr/y) ,fmt='o',label='Data')
+    mpl.plot(x,np.log(np.exp(-(p**2/(2*m)-mu)*x)-firstOrderSolution(x, mu,alpha)),color='orange',zorder=2,label='Exact')
     #m,b=np.polyfit(x[int(.25*len(x)):],np.log(-y[int(.25*len(x)):]),deg=1)
     #mpl.plot(x[int(.25*len(x)):],m*x[int(.25*len(x)):]+b,color='red',zorder=3,label='regression')
     #mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
@@ -324,11 +324,11 @@ def plot1(hist,count,order,p,mu,directory='./',m=1):
     
     mpl.show()
     
-    mpl.bar(['insert %','remove %'],[count[3]*100/count[4],count[5]*100/count[6]])
+    mpl.bar(['insert %','remove %','extend %'],[count[3]*100/count[4],count[5]*100/count[6],count[9]/count[10]])
     mpl.savefig(directory+'accProb_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     mpl.show()#fix the monte carlo time in this
     
-    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu),yerr=hist[:,2] ,fmt='o',label='Data')
+    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu,alpha),yerr=hist[:,2] ,fmt='o',label='Data')
     mpl.xlabel(r'$\tau$')
     mpl.ylabel('G')
     mpl.xlim(x[0],x[-1])
