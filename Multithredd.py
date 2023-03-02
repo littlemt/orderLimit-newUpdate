@@ -35,7 +35,7 @@ def loop(seed):
     
     tauMax=float(config.get('section_a','tauMax'))
     runTime=int(config.get('section_a','runTime'))
-    upProbs=np.int16(config.get('section_a','updateProb').split(','))
+    upProbs=np.float64(config.get('section_a','updateProb').split(','))
     pExt=float(config.get('section_a','exMomentum'))
     mu=float(config.get('section_a','mu'))
     alpha=float(config.get('section_a','alpha'))
