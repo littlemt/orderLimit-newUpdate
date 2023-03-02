@@ -116,7 +116,7 @@ if __name__ =='__main__':
         histArray[:,1]=np.average(histR,axis=1)
         histArray[:,2]=np.std(histR,axis=1)/noThread**.5 
             
-        directory='./Plots/noRe_O'+config.get('section_a','maxOrder')+'_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_T'+config.get('section_a','tauMax')+'/'
+        directory='./Plots/Re_O'+config.get('section_a','maxOrder')+'_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_T'+config.get('section_a','tauMax')+'/'
         os.mkdir(directory)
         
         np.savetxt(directory+'avgData',histArray,delimiter=',')
