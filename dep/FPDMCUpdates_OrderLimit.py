@@ -123,7 +123,7 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     tauNew=t-np.log(R)*(abs(eps-mu))**-1
     
         
-        
+
     #the weight may still be 1 need to show
     if tauNew>tauMax or nrand.uniform()>1:
         #np.exp((eps-mu)*(tau-tauNew))*tauScale(tauNew)/tauScale(tau)
