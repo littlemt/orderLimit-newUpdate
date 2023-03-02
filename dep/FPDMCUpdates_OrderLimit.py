@@ -116,16 +116,15 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     
     
        
-        
+    
     t=mList[2*order,0]
     
-    
     R=nrand.uniform()
-    tauNew=t-np.log(R)/abs(eps-mu)
+    tauNew=t-np.log(R)*(abs(eps-mu))**-1
     
         
         
-    
+    #the weight may still be 1 need to show
     if tauNew>tauMax or nrand.uniform()>1:
         #np.exp((eps-mu)*(tau-tauNew))*tauScale(tauNew)/tauScale(tau)
         
@@ -211,6 +210,25 @@ def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
 #following are functions having to do with insert
     
 def spliceInsert(index1,insList,recList,index2):
+    '''
+    
+
+    Parameters
+    ----------
+    index1 : TYPE
+        DESCRIPTION.
+    insList : TYPE
+        DESCRIPTION.
+    recList : TYPE
+        DESCRIPTION.
+    index2 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
     length=len(insList)
     
     

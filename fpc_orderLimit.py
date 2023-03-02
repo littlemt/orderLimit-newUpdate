@@ -24,17 +24,7 @@ config=configparser.ConfigParser()
 
         
 
-def zero_order(tauMax,runTime,pExt,mu,alpha,m=1):
-    tauList=[]
-    runTime=runTime*3600+time.time()
-    count=0
-    tau=0
-    while time.time()<runTime:
-        tau,i = FPC.changeTau(tau,tauMax,pExt,0,m)
-        tauList.append(tau)
-        count += i
-        
-    return tauList,count
+
 
 
 def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax=-1,bins=100,omega=1,m=1,debug=0):
@@ -98,7 +88,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     mList[0,1:4]=[0,0,pExt]
     
     histList=np.zeros((bins,2))
-    histList[:,0]=np.linspace(0, tauMax,bins)
+    histList[:,0]=np.linspace(0, tauMax,bins,endpoint=False)
     
     orderList=np.zeros(orderMax+1)
     
@@ -109,8 +99,8 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     pIns=sum(P[:2])/total
     pRem=sum(P[:3])/total
     pSwap=sum(P[:4])/total
-    pExt=sum(P[:5])/total
-    pFext=sum(P[:6])/total
+    pEx=sum(P[:5])/total
+    pFex=sum(P[:6])/total
     #print(pTau,pIns,pRem,pSwap)
     countT=0
     countI=0
@@ -154,10 +144,11 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         if 0<=x<pTau and n==0:
             #change time zero order
             #print('tau')
-            tau,i = FPC.changeTauRe(tau,tauMax,mList,pExt,n,mu,m)
+            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             
             
             if countLoopNum==step and debug==1:
+                print(tau)
                 tauList.append(tau)
                 
             countT += i
@@ -199,7 +190,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             countSD+=1
             #orderList.append(n)  
             
-        elif pSwap<=x<pExt and n<=1:
+        elif pSwap<=x<pEx and n<=1:
             #extend 
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             
@@ -214,13 +205,13 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
             #orderList.append(n)  
             
-        elif pExt<=x<pFext and n<=1:
+        elif pExt<=x<pFex and n<=1:
             #update is broken and i am too lazy to fix
             #this is a different extend where it rescales the time values relitive to the new tau
             
             qList,mList,tau,i=FPC.fancyExtend(tau,tauMax,mList,qList,pExt,n,mu,m)
             countFE+=i
-            countFE+=1
+            countFED+=1
             
             if debug==1 and countLoopNum==step:
                 tauList.append(tau)
@@ -243,9 +234,9 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
                 print(1)
             
             if n==0:
-                countZero+=np.exp(tau*mu)
+                countZero+=1#np.exp(tau*mu)
             
-            histList[int(tau/(deltaTau)),1]+=np.exp(tau*mu)
+            histList[int(tau/(deltaTau)),1]+=1#np.exp(tau*mu)
             
             countLoopNum=0
             
@@ -278,7 +269,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         
     #mcTime.append(mcT)
-    count =np.array([mcTime[0],mcTime[1],countT,countI,countID,-countR,countRD,countS,countSD,countE,countFE,countFED])
+    count =np.array([mcTime[0],mcTime[1],countT,countI,countID,-countR,countRD,countS,countSD,countE,countED,countFE,countFED])
     if debug==1:
         
         return tauList,countZero,histList,qList,count,mList,orderList
@@ -297,7 +288,7 @@ def firstOrderSolution(tau,mu,alpha,omega=1,m=1):
 def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     config.read('param.ini')
     
-    x=hist[:,0]
+    x=hist[:,0]+.5*hist[1,0]
     y=hist[:,1]
     yerr=hist[:,2]
              
@@ -306,9 +297,9 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     mpl.title(r'$mu=$'+str(mu))
     mpl.errorbar(x,np.log(-hist[:,1]),yerr=np.abs(yerr/y) ,fmt='o',label='Data')
     mpl.plot(x,np.log(np.exp(-(p**2/(2*m)-mu)*x)-firstOrderSolution(x, mu,alpha)),color='orange',zorder=2,label='Exact')
-    m,b=np.polyfit(x[int(.25*len(x)):],np.log(-y[int(.25*len(x)):]),deg=1)
-    mpl.plot(x[int(.25*len(x)):],m*x[int(.25*len(x)):]+b,color='red',zorder=3,label='regression')
-    mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
+    #m,b=np.polyfit(x[int(.25*len(x)):],np.log(-y[int(.25*len(x)):]),deg=1)
+    #mpl.plot(x[int(.25*len(x)):],m*x[int(.25*len(x)):]+b,color='red',zorder=3,label='regression')
+    #mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
     mpl.legend()
     mpl.xlim(x[0],x[-1])
     mpl.savefig(directory+'tauvsLogG1_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
@@ -324,7 +315,7 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     
     mpl.show()
     
-    mpl.bar([r'insert $\%$',r'remove $\%$'],[count[3]*100/count[4],count[5]*100/count[6]])
+    mpl.bar(['insert %','remove %','extend %'],[count[3]*100/count[4],count[5]*100/count[6],count[9]/count[10]])
     mpl.savefig(directory+'accProb_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     mpl.show()#fix the monte carlo time in this
     
@@ -332,13 +323,14 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     mpl.xlabel(r'$\tau$')
     mpl.ylabel('G')
     mpl.xlim(x[0],x[-1])
+    mpl.plot(x,0*x,zorder=2)
     mpl.savefig(directory+'tauvsG-acc0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     mpl.show()
     
 def plot0(hist,p,mu,directory='./',m=1):
     config.read('param.ini')
     
-    x=hist[:,0]
+    x=hist[:,0]+.5*hist[1,0]
     y=hist[:,1]
     yerr=hist[:,2]
     
@@ -346,11 +338,11 @@ def plot0(hist,p,mu,directory='./',m=1):
     mpl.xlabel(r'$\tau$')
     mpl.ylabel(r'$\log[-G(p=0,\tau)]$')
     mpl.title(r'$\mu$='+str(mu))
-    mpl.errorbar(x,np.log(-hist[:,1]),yerr=yerr/y ,fmt='o',label='Data')
+    mpl.errorbar(x,np.log(-hist[:,1]),yerr=yerr/abs(y) ,fmt='o',label='Data')
     mpl.plot(x,-(p**2/2/m-mu)*x,color='orange',zorder=3,label='Exact')
-    m,b=np.polyfit(x,np.log(-y),deg=1)
-    mpl.plot(x,m*x+b,color='red',zorder=2,label='regression')
-    mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
+    #m,b=np.polyfit(x,np.log(-y),deg=1)
+    #mpl.plot(x,m*x+b,color='red',zorder=2,label='regression')
+    #mpl.title('reg line: '+'y='+str(round(m,5))+'x+'+str(round(b,5)))
     mpl.xlim(x[0],x[-1])
     mpl.legend()
     mpl.savefig(directory+'tauvsLogG0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
@@ -359,7 +351,7 @@ def plot0(hist,p,mu,directory='./',m=1):
     mpl.show()
     
     mpl.errorbar(x,-hist[:,1] ,yerr=hist[:,2] ,fmt='o',label='Data')
-    mpl.plot(hist[:,0],(np.exp(-(p-mu)*hist[:,0])),color='red',zorder=2)
+    mpl.plot(hist[:,0],(np.exp(-x*(p/2/m-mu))),color='red',zorder=2)
     mpl.xlabel(r'$\tau$')
     mpl.ylim(0,1)
     mpl.ylabel('G')
@@ -369,7 +361,6 @@ def plot0(hist,p,mu,directory='./',m=1):
     
     mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu)),yerr=hist[:,2] ,fmt='o',label='Data',zorder=1)
     mpl.xlabel(r'$\tau$')
-    mpl.ylabel('G')
     mpl.plot(x,0*x,zorder=2)
     mpl.xlim(x[0],x[-1])
     mpl.savefig(directory+'tauvsG0-acc_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
@@ -380,7 +371,7 @@ def plot0(hist,p,mu,directory='./',m=1):
     
 def plot(hist,count,order,p,mu,directory='./',m=1):
     config.read('param.ini')
-    x=hist[:,0]
+    x=hist[:,0]+.5*hist[1,0]
     y=hist[:,1]
     yerr=hist[:,2]
     
@@ -408,8 +399,7 @@ def plot(hist,count,order,p,mu,directory='./',m=1):
     
     
     
-
-
+#should I make a plot individual?
 
 def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
     
@@ -427,7 +417,18 @@ def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
 
         
 #fix extend 
-
+def run(seed):
+    hist,zero,count,order=first_order(5,10000000,[100,0,0,0,0,0],0,-6,5,0,1,1,seed)
+    hist2=np.zeros((100,3))
+    hist2[:,:2]=hist
+    hist2[:,1]=calc(hist[:,1],hist[-1,0],hist[1,0],0,-6,zero)
+    hist2[:,0]+=.5*hist[1,0]
+    mpl.plot(hist2[:,0],np.log(-hist2[:,1]))
+    
+    mpl.show()
+    mpl.plot(hist2[:,0],(np.log(np.exp(-6*hist2[:,0]))-np.log(-hist2[:,1])))
+    mpl.show()
+    print(count)
 
 
 #if i limit the order then i can use numpy array
