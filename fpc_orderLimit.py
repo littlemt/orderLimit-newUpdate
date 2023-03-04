@@ -101,7 +101,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     pSwap=sum(P[:4])/total
     pEx=sum(P[:5])/total
     pFex=sum(P[:6])/total
-    print(pTau,pIns,pRem,pSwap)
+    #print(pTau,pIns,pRem,pSwap)
     countT=0
     countI=0
     countR=0
@@ -140,12 +140,12 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         #print(n)
         
         
-        print(x)
+        #print(x)
         if 0<=x<pTau and n==0:
             #change time zero order
             #print('tau')
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
-            print('t')
+            
             
             if countLoopNum==step and debug==1:
                 
@@ -160,7 +160,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #orderList.append(n)  
         elif pTau<x<=pIns and n<orderMax:
             #insert update
-            print('ins')
+            #print('ins')
             
             qList,mList,i=FPC.insertArc(qList,mList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu)
             
@@ -173,7 +173,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         elif pIns<x<=pRem and n>=1:
             #remove update
-            print('rem')
+            #print('rem')
             qList,mList,i=FPC.removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIns,alpha)
             
             countR+=i
@@ -185,7 +185,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         elif pRem<=x<pSwap and n>=2:
             #swap update
-            print('swap')
+            #print('swap')
             qList,mList,i=FPC.swap(qList,mList, n,omega,mu,m)
             countS+=i
             countSD+=1
@@ -193,7 +193,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         elif pSwap<=x<pEx and n<=1:
             #extend 
-            print('extend')
+            #print('extend')
             tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             
             if debug==1 and countLoopNum==step:
@@ -208,7 +208,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #orderList.append(n)  
             
         elif pEx<=x<pFex and n<=1:
-            print('fancy extend')
+            #print('fancy extend')
             #update is broken and i am too lazy to fix
             #this is a different extend where it rescales the time values relitive to the new tau
             
@@ -319,9 +319,9 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     
     mpl.show()
     
-    mpl.bar(['insert %','remove %','extend %'],[count[3]*100/count[4],count[5]*100/count[6],count[9]/count[10]])
-    mpl.savefig(directory+'accProb_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
-    mpl.show()#fix the monte carlo time in this
+    # mpl.bar(['insert %','remove %','extend %'],[count[3]*100/count[4],count[5]*100/count[6],count[9]/count[10]])
+    # mpl.savefig(directory+'accProb_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
+    # mpl.show()#fix the monte carlo time in this
     
     mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu,alpha),yerr=hist[:,2] ,fmt='o',label='Data')
     mpl.xlabel(r'$\tau$')
