@@ -396,10 +396,10 @@ def plot(hist,count,order,p,mu,directory='./',m=1):
     
     mpl.show()
     
-    mpl.bar(['insert %','remove %','swap %'],[count[3]*100/count[4],count[5]*100/count[6],count[7]*100/count[8]])
-    mpl.savefig(directory+'accProb'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
+    # mpl.bar(['insert %','remove %','swap %'],[count[3]*100/count[4],count[5]*100/count[6],count[7]*100/count[8]])
+    # mpl.savefig(directory+'accProb'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     
-    mpl.show()
+    # mpl.show()
     
     
     
