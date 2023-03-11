@@ -124,13 +124,14 @@ if __name__ =='__main__':
         np.savetxt(directory+'zeros', noZero,delimiter=',')
         np.savetxt(directory+'counts',count,delimiter=',')
         
-        if int(config.get('section_a','maxOrder'))==0:
-            fpc.plot0(histArray,pExt,mu,directory=directory)
-        elif int(config.get('section_a','maxOrder'))==1:
-            fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,alpha,directory=directory)
-        else:
-            fpc.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
-        
+        if int(config.get('section_b','plot'))==1:
+            if int(config.get('section_a','maxOrder'))==0:
+                fpc.plot0(histArray,pExt,mu,directory=directory)
+            elif int(config.get('section_a','maxOrder'))==1:
+                fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,alpha,directory=directory)
+            else:
+                fpc.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
+            
         
         
             
