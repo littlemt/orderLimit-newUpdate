@@ -10,9 +10,8 @@ from multiprocessing import Pool
 import fpc_orderLimit as fpc
 import configparser
 import numpy as np
-from matplotlib import pyplot as mpl
 import os
-import shutil as st
+
 
 from matplotlib import rc 
 rc('text', usetex=True)
