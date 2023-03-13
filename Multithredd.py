@@ -10,9 +10,7 @@ from multiprocessing import Pool
 import fpc_orderLimit as fpc
 import configparser
 import numpy as np
-from matplotlib import pyplot as mpl
 import os
-import shutil as st
 
 from matplotlib import rc 
 rc('text', usetex=True)
@@ -108,11 +106,7 @@ if __name__ =='__main__':
     
         
         orderAvg=np.average(order,axis=1)
-            
-        
         countAvg=np.average(count,axis=1)
-        
-    
         histArray[:,1]=np.average(histR,axis=1)
         histArray[:,2]=np.std(histR,axis=1)/noThread**.5 
             
