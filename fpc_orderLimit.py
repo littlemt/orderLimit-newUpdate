@@ -319,10 +319,19 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     mpl.show()
 
     
-    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu,alpha),yerr=hist[:,2] ,fmt='o',label='Data')
+    mpl.errorbar(x,np.log(-hist[:,1]) -np.log(np.exp(-x*(p/2/m-mu))+firstOrderSolution(x,mu,alpha)),yerr=hist[:,2] ,fmt='o',label='Data')
     mpl.xlabel(r'$\tau$')
     mpl.ylabel('G')
     mpl.xlim(x[0],x[-1])
+    mpl.plot(x,0*x,zorder=2)
+    mpl.savefig(directory+'tauvsG-acc0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
+    mpl.show()
+    
+    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))+firstOrderSolution(x,mu,alpha),yerr=hist[:,2] ,fmt='o',label='Data')
+    mpl.xlabel(r'$\tau$')
+    mpl.ylabel('G')
+    mpl.xlim(x[0],x[-1])
+    mpl.yscale('log')
     mpl.plot(x,0*x,zorder=2)
     mpl.savefig(directory+'tauvsG-acc0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     mpl.show()

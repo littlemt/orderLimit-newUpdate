@@ -211,7 +211,8 @@ def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
     
 def spliceInsert(index1,insList,recList,index2):
     '''
-    
+    function inserts the new verticies and all changed propogators in the appropriate
+    time ordered position in the list
 
     Parameters
     ----------
@@ -238,6 +239,26 @@ def spliceInsert(index1,insList,recList,index2):
     return(recList)
 
 def spliceInsertM(index1,insList,recList,index2):
+    '''
+    
+
+    Parameters
+    ----------
+    index1 : TYPE
+        DESCRIPTION.
+    insList : TYPE
+        DESCRIPTION.
+    recList : TYPE
+        DESCRIPTION.
+    index2 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
     length=len(insList)
     
     
