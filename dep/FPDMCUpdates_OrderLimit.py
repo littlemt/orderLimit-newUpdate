@@ -123,7 +123,7 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     tauNew=t-np.log(R)*(abs(eps-mu))**-1
     
         
-        
+
     #the weight may still be 1 need to show
     if tauNew>tauMax or nrand.uniform()>1:
         #np.exp((eps-mu)*(tau-tauNew))*tauScale(tauNew)/tauScale(tau)
@@ -209,50 +209,48 @@ def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
 
 #following are functions having to do with insert
     
-def spliceInsert(index1,insList,recList,index2):
+
+
+
+def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     '''
-    
+    This function is responsible for inserting phonon arcs
 
     Parameters
     ----------
-    index1 : TYPE
+    qList : numpy array 
+        dimension order max by 5.
+    mList : numpy array
+        dimension 2*order max+2 by 4.
+    tMax : TYPE
         DESCRIPTION.
-    insList : TYPE
+    orderMax : TYPE
         DESCRIPTION.
-    recList : TYPE
+    omega : TYPE
         DESCRIPTION.
-    index2 : TYPE
+    m : TYPE
+        DESCRIPTION.
+    n : TYPE
+        DESCRIPTION.
+    pIn : TYPE
+        DESCRIPTION.
+    pRem : TYPE
+        DESCRIPTION.
+    alpha : TYPE
+        DESCRIPTION.
+    mu : TYPE
         DESCRIPTION.
 
     Returns
     -------
-    None.
+    qList : TYPE
+        DESCRIPTION.
+    mList : TYPE
+        DESCRIPTION.
+    int
+        DESCRIPTION.
 
     '''
-    length=len(insList)
-    
-    
-    recList[index1+length-2:index2+length-2]=recList[index1:index2]
-    
-    recList[index1:index1+length]=insList
-    return(recList)
-
-def spliceInsertM(index1,insList,recList,index2):
-    length=len(insList)
-    
-    
-    recList[index1+length-1:index2+length-1]=recList[index1:index2]
-    
-    
-    recList[index1:index1+length]=insList
-    
-    return(recList)
-
-    
-
-
-def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
-    
 
     
     index1=nrand.integers(0,2*n+1)
@@ -317,6 +315,7 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     else:
         #print('fail')
         return qList,mList,0
+    
         
 def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omega,q,pRem,pIn,order):
     #these may be missing |V^2|
@@ -360,23 +359,70 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     else:
         return 0,deltaTauListRem
     
-#the following are the functions used in remove
-def spliceRemove(index1,remList,recList,index2):
-    #print(recList)
-    #print(remList,'rL')
-    length=len(remList)
-    #print(np.shape(remList))
-    #print(recList[index1:index1+length],remList)
+def spliceInsert(index1,insList,recList,index2):
+    '''
+    function inserts the new verticies and all changed propogators in the appropriate
+    time ordered position in the list
+
+    Parameters
+    ----------
+    index1 : TYPE
+        DESCRIPTION.
+    insList : TYPE
+        DESCRIPTION.
+    recList : TYPE
+        DESCRIPTION.
+    index2 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+    length=len(insList)
     
-    #this appends the new list to the correct place
-    recList[index1:index1+length]=remList
-    #print(recList)
-    #this takes the end part of the list 
-    recList[index1+length:index2-2]=recList[index1+length+2:index2]
-    recList[index2-2:]=0
-    #print(recList)
+    
+    recList[index1+length-2:index2+length-2]=recList[index1:index2]
+    
+    recList[index1:index1+length]=insList
     return(recList)
+
+def spliceInsertM(index1,insList,recList,index2):
+    '''
     
+
+    Parameters
+    ----------
+    index1 : TYPE
+        DESCRIPTION.
+    insList : TYPE
+        DESCRIPTION.
+    recList : TYPE
+        DESCRIPTION.
+    index2 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    length=len(insList)
+    
+    
+    recList[index1+length-1:index2+length-1]=recList[index1:index2]
+    
+    
+    recList[index1:index1+length]=insList
+    
+    return(recList)
+
+    
+    
+#the following are the functions used in remove
+
 def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     #print("rem")
     
@@ -512,6 +558,22 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     else:
         return 0,tauListRem,momentumListRem
           
+def spliceRemove(index1,remList,recList,index2):
+    #print(recList)
+    #print(remList,'rL')
+    length=len(remList)
+    #print(np.shape(remList))
+    #print(recList[index1:index1+length],remList)
+    
+    #this appends the new list to the correct place
+    recList[index1:index1+length]=remList
+    #print(recList)
+    #this takes the end part of the list 
+    recList[index1+length:index2-2]=recList[index1+length+2:index2]
+    recList[index2-2:]=0
+    #print(recList)
+    return(recList)
+    
         
 #the following all has to do with swap   
         
