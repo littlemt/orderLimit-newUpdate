@@ -131,7 +131,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     
     
     #change this to a for loop
-    for i in range(runTime):
+    for time in range(runTime):
     #while time.time()<endTime:
         #if time.time()-startTime
         x=nrand.uniform()
