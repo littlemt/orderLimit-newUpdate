@@ -209,7 +209,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
             #orderList.append(n)  
             
-        elif pEx<=x<pFex and n<=1:
+        elif pEx<=x<pFex and n>=1:
 
             #update is broken and i am too lazy to fix
             #this is a different extend where it rescales the time values relitive to the new tau
