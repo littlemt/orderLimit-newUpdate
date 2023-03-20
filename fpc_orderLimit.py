@@ -208,7 +208,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
             #orderList.append(n)  
             
-        elif pEx<=x<pFex and n<=1:
+        elif pEx<=x<pFex and n>=1:
             #print('fancy extend')
             #update is broken and i am too lazy to fix
             #this is a different extend where it rescales the time values relitive to the new tau
@@ -332,8 +332,6 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     mpl.ylabel('G')
     mpl.xlim(x[0],x[-1])
     mpl.plot(x,0*x,zorder=2)
-
-    mpl.yscale('log')
     mpl.ylim(-.5,.5)
     mpl.savefig(directory+'tauvsG-acc0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     mpl.show()
@@ -428,7 +426,7 @@ def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
         
 #fix extend 
 def run(seed):
-    hist,zero,count,order=first_order(5,10000000,[100,1,1,0,0,0],0,-6,5,0,1,1,seed)
+    hist,zero,count,order=first_order(5,10000000,[10,5,1,0,1,0],0,-6,5,1,1000,1,seed)
     hist2=np.zeros((100,3))
     hist2[:,:2]=hist
     hist2[:,1]=calc(hist[:,1],hist[-1,0],hist[1,0],0,-6,zero)
@@ -436,7 +434,7 @@ def run(seed):
     mpl.plot(hist2[:,0],np.log(-hist2[:,1]))
     
     mpl.show()
-    mpl.plot(hist2[:,0],(np.log(np.exp(-6*hist2[:,0]))-np.log(-hist2[:,1])))
+    mpl.bar(np.arange(len(order)),order/sum(order))
     mpl.show()
     print(count)
 
