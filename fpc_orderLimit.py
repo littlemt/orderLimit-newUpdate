@@ -163,7 +163,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #insert update
             #print('ins')
             
-            qList,mList,i=FPC.insertArc(qList,mList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu)
+            qList,mList,i=FPC.insertArc(qList,mList,tau,omega,m,n,pIns,pRem,alpha,mu)
             
             countI+=i
             
@@ -175,7 +175,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         elif pIns<x<=pRem and n>=1:
             #remove update
             #print('rem')
-            qList,mList,i=FPC.removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIns,alpha)
+            qList,mList,i=FPC.removeArc(qList,mList,omega,m,n,mu,pRem,pIns,alpha)
             
             countR+=i
             
@@ -427,7 +427,7 @@ def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
         
 #fix extend 
 def run(seed):
-    hist,zero,count,order=first_order(15,10000000,[1,1,1,1,1,0],0,-6,5,500,1,1,seed,debug=0)
+    hist,zero,count,order=first_order(15,10000000,[1,1,1,0,0,0],0,-6,5,1,1,1,seed,debug=0)
     hist2=np.zeros((100,3))
     hist2[:,:2]=hist
     hist2[:,1]=calc(hist[:,1],hist[-1,0],hist[1,0],0,-6,zero)

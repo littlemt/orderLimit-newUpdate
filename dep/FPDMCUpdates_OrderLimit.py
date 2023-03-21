@@ -24,14 +24,14 @@ swap
 #epsilon =k**2/(2*m)
 #D^tilde =np.exp(-omega*tau)   
 
-def norm(array):
-    return np.linalg.norm(array)
+
 
 def normVec(array):
-    dumArray=np.zeros(len(array))
-    for i in range(len(array)):
-        dumArray[i]=np.linalg.norm(array[i])
-    return dumArray
+    try:
+        return np.linalg.norm(array,axis=1)
+    except:
+        return np.linalg.norm(array)
+   
 
 #following are the change in tau Components
 
@@ -212,7 +212,7 @@ def fancyExtend(tau,tauMax,mList,qList,pExt,order,mu,m):
 
 
 
-def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
+def insertArc(qList,mList,tMax,omega,m,n,pIn,pRem,alpha,mu):
     '''
     This function is responsible for inserting phonon arcs
 
@@ -223,8 +223,6 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     mList : numpy array
         dimension 2*order max+2 by 4.
     tMax : TYPE
-        DESCRIPTION.
-    orderMax : TYPE
         DESCRIPTION.
     omega : TYPE
         DESCRIPTION.
@@ -273,7 +271,10 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     #print(tauOne,tauOneP)
     tauTwo=nrand.uniform(tauOne,tauOneP)
     
-    tauTwoP=tauTwo-np.log(nrand.uniform())/(norm(mList[0,1:])**2/(2*m)-mu)
+    
+    
+    #should be log/omega not this
+    tauTwoP=tauTwo-np.log(nrand.uniform())/omega#(norm(mList[0,1:])**2/(2*m)-mu)
     
     #checks to see if it is inserting past maxium allowed value
     #print(tauTwoP,tauOneP)
@@ -295,11 +296,13 @@ def insertArc(qList,mList,tMax,orderMax,omega,m,n,pIn,pRem,alpha,mu):
     
     momListP=k,k-qTwo,k
     
-    r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n)
     
+    r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n)
+    print([tauTwo,tauTwoP],qTwo)
     #print(index1,'i1')
     if r==1:
         #print('i',n)
+        
         qList[n,:2]=[tauTwo,tauTwoP]
         qList[n,2:]=qTwo
         #print(mList)
@@ -323,6 +326,9 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     #print(tauListIn,'tLI')
     #print('rIn')
     deltaTauListIn=tauListIn[1:dum1]-tauListIn[:dum1-1]
+    
+    
+    
     deltaTauIn=tauListIn[-1]-tauListIn[0]
     #print(deltaTauListIn,deltaTauIn,'dtLI,dtI')
     dum2=len(tauListRem)
@@ -338,13 +344,17 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*norm(q)**-2*(2*np.pi)**-3
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
     wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
+    
+    
 
-    pXY=pRem*(1/(order+1))
-    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(norm(q)**2/(2*m)*deltaTauIn))\
-        /(2*np.pi*m/(deltaTauIn))**(3/2)
-    #print(wIns*wRem/pYX*pXY)
+    pYX=pRem*(1/(order+1))
+    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
+        /(2*np.pi*m/(deltaTauRem))**(3/2)
+        
+    print(wIns,pYX,wRem,pXY)
+    print(wIns*pYX/(wRem*pXY))
     
     if wIns*pYX>wRem*pXY:
         R=1
@@ -355,6 +365,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     
     
     if nrand.uniform()<R:
+        print('accepted')
         return 1,deltaTauListRem
     else:
         return 0,deltaTauListRem
@@ -423,7 +434,7 @@ def spliceInsertM(index1,insList,recList,index2):
     
 #the following are the functions used in remove
 
-def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
+def removeArc(qList,mList,omega,m,n,mu,pRem,pIn,alpha):
     #print("rem")
     
     #n=order(qList)
@@ -464,7 +475,7 @@ def removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIn,alpha):
     #if i allow it to pick any arc then I have to make R a large calc
     
     #print(tauOne,tauOneP)    
-    r,tauListRem,mListRem =R_remove(qList,mList, index1, index2, m, mu, norm(q), omega, pRem, pIn, n, alpha)
+    r,tauListRem,mListRem =R_remove(qList,mList, index1, index2, m, mu, normVec(q), omega, pRem, pIn, n, alpha)
     #print(qList,index1,index2)
     #print(mList,'here')
     if r==1:
@@ -488,16 +499,25 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     #index1 is the first vertex point
     #index2 is the final xertex 
     #print('rRem')
+    
+    #seperates the electron array into just verticies and just momentums
     momentumList=mList[:,1:4]
     tauList=mList[:,0]
     
     #print(index1,index2)
     
+    #takes the two indicies given to it by the remove arc function and creates the array of 
+    #the momentums of all of the electron propogators covered by the sugested arc to be removed
+    #as well as the electron propogators to the immidiate either side
     momentumListIn=momentumList[index1-1:index2+1]
     
-    #issue here
+    #this calculates the change in time for each electron propagator
     deltaTauListIn=tauList[index1:index2+2]-tauList[index1-1:index2+1]
-    deltaTauIn=tauList[index2]-tauList[index1]
+    print(tauList,'tList')
+    
+    
+    #calculates delta time for the 
+    deltaTauIn=tauList[index2+1]-tauList[index1-1]
     
     deltaTauRem=tauList[index2]-tauList[index1]
     
@@ -511,7 +531,7 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
         momentumListRem=np.array([momentumListIn[0]])
         #print(momentumListRem,1)
         #print(momentumListIn)
-        momentumListRemN=norm(momentumListRem)
+        momentumListRemN=normVec(momentumListRem)
     else:
         #breaking here when swap is used
         #print(momentumListIn)
@@ -523,12 +543,15 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     #print(np.shape(deltaTauListIn),np.shape(normVec(momentumListIn)**2/2/m-mu),np.shape(np.exp(-omega*(deltaTauIn))))
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauIn))*q**-2*(2*np.pi)**-3
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*q**-2*(2*np.pi)**-3
     wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
+    
 
-    pXY=pRem*(1/(order+1))
-    pYX=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauIn))\
-        /(2*np.pi*m/(deltaTauIn))**(3/2)
+    pYX=pRem*(1/(order))
+    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))\
+        /(2*np.pi*m/(deltaTauRem))**(3/2)
+
+    
     
     
     #this should take the tauList and reshape it into an (x,2) array
@@ -551,7 +574,7 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     elif wIns*pXY<wRem*pYX*1e10:
         R=0
     else:
-        R=wRem/wIns*pYX/pXY
+        R=wRem/wIns*pXY/pYX
     
     if nrand.uniform()<R:
         return 1,tauListRem,momentumListRem
@@ -631,8 +654,8 @@ def swap (qList,mList,order,omega,mu,m):
     
     x=nrand.uniform()
     
-    wX=np.exp(-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(norm(k1)**2/(2*m)-mu))
-    wY=np.exp(-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(norm(k1P)**2/(2*m)-mu))
+    wX=np.exp(-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(normVec(k1)**2/(2*m)-mu))
+    wY=np.exp(-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(normVec(k1P)**2/(2*m)-mu))
     
     if wX>wY:
         r=1
