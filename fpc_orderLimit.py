@@ -82,7 +82,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     qList=np.zeros((orderMax,5))
     mList=np.zeros((orderMax*2+2,4))
     mList[1,0]=.00001
-    tau,i=FPC.changeTau(0,tauMax,mList,pExt,0,mu,m)
+    tau,i=FPC.changeTauRe(0,tauMax,mList,pExt,0,mu,m)
     tauList=[tau]
     mList[0:2,0]=[0,tau]
     mList[0,1:4]=[0,0,pExt]
