@@ -145,7 +145,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         if 0<=x<pTau and n==0:
             #change time zero order
             #print('tau')
-            tau,i = FPC.changeTauRe(tau,tauMax,mList,pExt,n,mu,m)
+            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
             
             
             if countLoopNum==step and debug==1:
@@ -195,7 +195,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         elif pSwap<=x<pEx and n<=1:
             #extend 
 
-            tau,i = FPC.changeTauRe(tau,tauMax,mList,pExt,n,mu,m)
+            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
 
             
             if debug==1 and countLoopNum==step:
@@ -239,9 +239,9 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
 
             
             if n==0:
-                countZero+=np.exp(tau*mu)
+                countZero+=1#np.exp(tau*mu)
 
-            histList[int(tau/(deltaTau)),1]+=np.exp(tau*mu)
+            histList[int(tau/(deltaTau)),1]+=1#np.exp(tau*mu)
 
             countLoopNum=0
             

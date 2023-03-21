@@ -298,7 +298,7 @@ def insertArc(qList,mList,tMax,omega,m,n,pIn,pRem,alpha,mu):
     
     
     r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n)
-    print([tauTwo,tauTwoP],qTwo)
+   
     #print(index1,'i1')
     if r==1:
         #print('i',n)
@@ -353,8 +353,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
         /(2*np.pi*m/(deltaTauRem))**(3/2)
         
-    print(wIns,pYX,wRem,pXY)
-    print(wIns*pYX/(wRem*pXY))
+    
     
     if wIns*pYX>wRem*pXY:
         R=1
@@ -365,7 +364,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     
     
     if nrand.uniform()<R:
-        print('accepted')
+        
         return 1,deltaTauListRem
     else:
         return 0,deltaTauListRem
@@ -513,7 +512,7 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     
     #this calculates the change in time for each electron propagator
     deltaTauListIn=tauList[index1:index2+2]-tauList[index1-1:index2+1]
-    print(tauList,'tList')
+    
     
     
     #calculates delta time for the 
