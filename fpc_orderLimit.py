@@ -145,7 +145,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         if 0<=x<pTau and n==0:
             #change time zero order
             #print('tau')
-            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
+            tau,i = FPC.changeTauRe(tau,tauMax,mList,pExt,n,mu,m)
             
             
             if countLoopNum==step and debug==1:
@@ -163,7 +163,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #insert update
             #print('ins')
             
-            qList,mList,i=FPC.insertArc(qList,mList,tau,orderMax,omega,m,n,pIns,pRem,alpha,mu)
+            qList,mList,i=FPC.insertArc(qList,mList,tau,omega,m,n,pIns,pRem,alpha,mu)
             
             countI+=i
             
@@ -175,7 +175,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         elif pIns<x<=pRem and n>=1:
             #remove update
             #print('rem')
-            qList,mList,i=FPC.removeArc(qList,mList,orderMax,omega,m,n,mu,pRem,pIns,alpha)
+            qList,mList,i=FPC.removeArc(qList,mList,omega,m,n,mu,pRem,pIns,alpha)
             
             countR+=i
             
@@ -194,8 +194,9 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         elif pSwap<=x<pEx and n<=1:
             #extend 
-            #print('extend')
-            tau,i = FPC.changeTau(tau,tauMax,mList,pExt,n,mu,m)
+
+            tau,i = FPC.changeTauRe(tau,tauMax,mList,pExt,n,mu,m)
+
             
             if debug==1 and countLoopNum==step:
                 tauList.append(tau)
@@ -209,7 +210,6 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #orderList.append(n)  
             
         elif pEx<=x<pFex and n>=1:
-            #print('fancy extend')
             #update is broken and i am too lazy to fix
             #this is a different extend where it rescales the time values relitive to the new tau
             
@@ -229,20 +229,20 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             mcTime[0]=(mcTime[0]*mcTime[1]+mcT)/(mcTime[1]+1)
             mcTime[1]+=1
             mcT=0
-            
         
+        if debug==1:
+            print(n,tau,time)
+    
         if thermal<=countTherm and countLoopNum==step:
             #
             #print(n)
-            if debug==1:
-                print(1)
+
             
             if n==0:
-                countZero+=1#np.exp(tau*mu)
-            
+                countZero+=np.exp(tau*mu)
 
-            histList[int(tau/(deltaTau)),1]+=1#np.exp(tau*mu)
-            
+            histList[int(tau/(deltaTau)),1]+=np.exp(tau*mu)
+
             countLoopNum=0
             
             
@@ -255,7 +255,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
         else:
             countLoopNum+=1
             
-            
+
         
         if mcT>mcTMax and mcTMax!=-1:
             #if mcT is set to -1 then this will never happen
@@ -426,7 +426,9 @@ def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
         
 #fix extend 
 def run(seed):
+
     hist,zero,count,order=first_order(5,10000000,[10,5,1,0,1,0],0,-6,5,1,1000,1,seed)
+
     hist2=np.zeros((100,3))
     hist2[:,:2]=hist
     hist2[:,1]=calc(hist[:,1],hist[-1,0],hist[1,0],0,-6,zero)
