@@ -327,7 +327,7 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     mpl.savefig(directory+'tauvsG-acc0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     mpl.show()
     
-    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu,alpha),yerr=hist[:,2] ,fmt='o',label='Data')
+    mpl.errorbar(x,-hist[:,1] -np.exp(-x*(p/2/m-mu))+firstOrderSolution(x,mu,alpha),yerr=hist[:,2] ,fmt='o',label='Data')
     mpl.xlabel(r'$\tau$')
     mpl.ylabel('G')
     mpl.xlim(x[0],x[-1])
@@ -336,7 +336,7 @@ def plot1(hist,count,order,p,mu,alpha,directory='./',m=1):
     mpl.savefig(directory+'tauvsG-acc0_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     mpl.show()
     
-    print(np.average(-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu,alpha)),np.std(-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu,alpha)))
+    print(np.average(-hist[:,1] -np.exp(-x*(p/2/m-mu))+firstOrderSolution(x,mu,alpha)),np.std(-hist[:,1] -np.exp(-x*(p/2/m-mu))-firstOrderSolution(x,mu,alpha)))
     
 def plot0(hist,p,mu,directory='./',m=1):
     config.read('param.ini')
@@ -427,7 +427,7 @@ def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
 #fix extend 
 def run(seed):
 
-    hist,zero,count,order=first_order(5,10000000,[10,5,1,0,1,0],0,-6,5,1,1000,1,seed)
+    hist,zero,count,order=first_order(5,10000000,[10,1,1,0,0,0],0,-6,5,1,1000,1,seed)
 
     hist2=np.zeros((100,3))
     hist2[:,:2]=hist

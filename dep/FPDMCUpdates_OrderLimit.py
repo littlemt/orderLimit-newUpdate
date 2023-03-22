@@ -360,7 +360,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     elif wIns*pYX>wRem*pXY*1e10:
         R=0
     else:
-        R=wIns*pYX/wRem/pXY
+        R=wIns*pYX/(wRem*pXY)
     
     
     if nrand.uniform()<R:
@@ -566,16 +566,17 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     
     #print(momentumListRem,'mR')
     
-    #print(wRem/wIns*pYX/pXY)
+    #print(wIns*pYX/wRem/pXY)
     
     if wIns*pYX<wRem*pXY:
         R=1
-    elif wIns*pXY<wRem*pYX*1e10:
+    elif wIns*pYX<wRem*pXY*1e-10:
         R=0
     else:
         R=wRem/wIns*pXY/pYX
-    
+   
     if nrand.uniform()<R:
+       
         return 1,tauListRem,momentumListRem
     else:
         return 0,tauListRem,momentumListRem
