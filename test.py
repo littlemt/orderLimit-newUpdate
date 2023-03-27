@@ -48,12 +48,22 @@ def rRem(aList,eList,alpha,propArc,mu):
     
     return wX/wY*pXY/pYX
 
-aList=np.array([[0,0,0,0,0]],dtype=float)
-eList=np.zeros((4,4),dtype=float)
+aList=np.zeros((2,5))
+eList=np.zeros((6,4),dtype=float)
 eList[1,0]=1
-aList,eList,i=FPC.insertArc(aList, eList, 5, 1, 1, 0, 1, 1, 5, -6)
+n=0
+while n<2:
+    aList,eList,i=FPC.insertArc(aList, eList, 5, 1, 1, n, 1, 1, 5, -6)
+    n+=i
+  
 
-aList,eList,i=FPC.removeArc(aList, eList, 1, 1, 1, -6, 1, 1, 5)
+for i in range(100000):    
+    FPC.swap(aList,eList,n,1,-6,1)
+
+
+
+
+
 
 
 
