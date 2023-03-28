@@ -271,6 +271,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             countTherm=0
             n=0
             mcT=1
+            print('reset')
             
         
     #mcTime.append(mcT)
@@ -427,18 +428,18 @@ def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
 #fix extend 
 def run(seed):
 
-    hist,zero,count,order=first_order(5,100000000,[10,1,1,1,1,0],0,-6,5,2,1000,1,seed)
+    hist,zero,count,order=first_order(15,100000000,[10,1,1,1,1,0],0,-6,5,3,100000,100,seed,mcTMax=1000000)
 
     hist2=np.zeros((100,3))
-    hist2[:,:2]=hist
-    hist2[:,1]=calc(hist[:,1],hist[-1,0],hist[1,0],0,-6,zero)
-    hist2[:,0]+=.5*hist[1,0]
-    mpl.plot(hist2[:,0],np.log(-hist2[:,1]))
+    hist2[:,0]=hist[:,0]
+    hist2[:,1]=calc(hist[:,1],hist[-1,0],hist[1,0]*2,0,-6,zero)
+    mpl.scatter(hist2[:,0],np.log(-hist2[:,1]))
     
     mpl.show()
     mpl.bar(np.arange(len(order)),order/sum(order))
     mpl.show()
     print(count)
+    print(hist)
 
 
 #if i limit the order then i can use numpy array

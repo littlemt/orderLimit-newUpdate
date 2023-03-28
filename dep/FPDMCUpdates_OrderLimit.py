@@ -344,25 +344,31 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
+    # wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
+    # wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
     
     
 
-    pYX=pRem*(1/(order+1))
-    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
-        /(2*np.pi*m/(deltaTauRem))**(3/2)
+    # pYX=pRem*(1/(order+1))
+    # pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
+    #     /(2*np.pi*m/(deltaTauRem))**(3/2)
         
+    wExp=-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))+np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu))\
+        +(normVec(q)**2/(2*m)*deltaTauRem)
+            
+    wRatio=pRem*(1/(order+1))*alphaTildaSq*normVec(q)**-2*(2*np.pi)**-3/(pIn/deltaTauIn*omega/(2*np.pi*m/(deltaTauRem))**(3/2))
     
     
-    if wIns*pYX>wRem*pXY:
+    if (wExp)>np.log(1/wRatio):
         R=1
-    elif wIns*pYX>wRem*pXY*1e10:
+        
+    elif wExp<np.log(1E-16/wRatio):
         R=0
+        
     else:
-        R=wIns*pYX/(wRem*pXY)
+        R=(wRatio*np.exp(wExp))
     
-    #print(R,wIns*pYX/(wRem*pXY),wIns*pYX,(wRem*pXY))
+    #print(R,wIns*pYX/(wRem*pXY))
     
     if nrand.uniform()<R:
         
@@ -546,10 +552,17 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*q**-2*(2*np.pi)**-3
     wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
     
-
+   
+    wExp=-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu))\
+            +(np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))-(q**2/(2*m)*deltaTauRem))
+            
+    wRatio=pIn/deltaTauIn*omega*(2*np.pi*m/(deltaTauRem))**(-3/2)/(pRem*(1/(order)))/alphaTildaSq*q**2*(2*np.pi)**3
+    
     pYX=pRem*(1/(order))
-    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))\
-        /(2*np.pi*m/(deltaTauRem))**(3/2)
+    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))/(2*np.pi*m/(deltaTauRem))**(3/2)
+        
+    #print(R,(wRatio*np.exp(wExp)),order)
+
 
     
     
@@ -567,16 +580,19 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     
     #print(momentumListRem,'mR')
     
-    #print(wIns*pYX/wRem/pXY)
     
-    if wIns*pYX<wRem*pXY:
+    
+    if (wExp)>np.log(1/wRatio):
         R=1
-    elif wIns*pYX*1e10<wRem*pXY:
-        R=0
-    else:
-        R=wRem*pXY/wIns*pYX
         
-    #print(R,wRem/wIns*pXY/pYX,wIns*pYX,wRem*pXY)
+    elif wExp<np.log(1E-16/wRatio):
+        R=0
+        
+    else:
+        R=wRatio*np.exp(wExp)
+        
+        
+    
    
     if nrand.uniform()<R:
     
