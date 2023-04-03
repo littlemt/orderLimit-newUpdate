@@ -370,7 +370,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     else:
         R=(wRatio*np.exp(wExp))
     
-    #print(R,wIns*pYX/(wRem*pXY))
+    print(R,wRatio*np.exp(wExp),'i')
     
     if nrand.uniform()<R:
         
@@ -593,7 +593,7 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     else:
         R=wRatio*np.exp(wExp)
         
-        
+    print(R,wRatio*np.exp(wExp),'r')     
     
    
     if nrand.uniform()<R:

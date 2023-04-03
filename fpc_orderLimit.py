@@ -428,7 +428,7 @@ def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
 #fix extend 
 def run(seed):
 
-    hist,zero,count,order=first_order(15,100000000,[10,1,1,1,1,0],0,-6,5,3,100000,100,seed,mcTMax=1000000)
+    hist,zero,count,order=first_order(15,100000000,[1000,10,10,10,10,0],0,-6,5,3,100000,100,seed,mcTMax=1000000)
 
     hist2=np.zeros((100,3))
     hist2[:,0]=hist[:,0]
