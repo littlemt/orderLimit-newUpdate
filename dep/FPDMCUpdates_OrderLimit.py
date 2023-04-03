@@ -116,8 +116,10 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     
     
        
-    
-    t=mList[2*order,0]
+    if order==0:
+        t=0
+    else:
+        t=mList[2*order+1,0]
     
     R=nrand.uniform()
     tauNew=t-np.log(R)*(abs(eps-mu))**-1
