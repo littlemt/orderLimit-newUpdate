@@ -8,6 +8,7 @@ Created on Wed Aug 17 11:11:36 2022
 
 from multiprocessing import Pool
 import fpc_orderLimit as fpc
+import plotting as fplot
 import configparser
 import numpy as np
 import os
@@ -128,11 +129,11 @@ if __name__ =='__main__':
         
         if int(config.get('section_b','plot'))==1:
             if int(config.get('section_a','maxOrder'))==0:
-                fpc.plot0(histArray,pExt,mu,directory=directory)
+                fplot.plot0(histArray,pExt,mu,directory=directory)
             elif int(config.get('section_a','maxOrder'))==1:
-                fpc.plot1(histArray,countAvg,orderAvg,pExt,mu,alpha,directory=directory)
+                fplot.plot1(histArray,countAvg,orderAvg,pExt,mu,alpha,directory=directory)
             else:
-                fpc.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
+                fplot.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
             
         
         
