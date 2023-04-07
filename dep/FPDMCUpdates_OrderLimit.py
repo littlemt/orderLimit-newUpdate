@@ -116,8 +116,10 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     
     
        
-    
-    t=mList[2*order,0]
+    if order==0:
+        t=0
+    else:
+        t=mList[2*order+1,0]
     
     R=nrand.uniform()
     tauNew=t-np.log(R)*(abs(eps-mu))**-1
@@ -298,7 +300,7 @@ def insertArc(qList,mList,tMax,omega,m,n,pIn,pRem,alpha,mu):
     
     
     r,this=R_insert(tauListP,momListP,np.array([tauOne,tauOneP]),k,alpha,m,mu,omega,qTwo,pRem,pIn,n)
-    
+   
     #print(index1,'i1')
     if r==1:
         #print('i',n)
@@ -344,25 +346,31 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
+    # wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
+    # wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
     
     
 
-    pYX=pRem*(1/(order+1))
-    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
-        /(2*np.pi*m/(deltaTauRem))**(3/2)
+    # pYX=pRem*(1/(order+1))
+    # pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
+    #     /(2*np.pi*m/(deltaTauRem))**(3/2)
         
+    wExp=-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))+np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu))\
+        +(normVec(q)**2/(2*m)*deltaTauRem)
+            
+    wRatio=pRem*(1/(order+1))*alphaTildaSq*normVec(q)**-2*(2*np.pi)**-3/(pIn/deltaTauIn*omega/(2*np.pi*m/(deltaTauRem))**(3/2))
     
-    #print('i',wIns*pYX/(wRem*pXY))
     
-    if wIns*pYX>wRem*pXY:
+    if (wExp)>np.log(1/wRatio):
         R=1
-    elif wIns*pYX>wRem*pXY*1e10:
+        
+    elif wExp<np.log(1E-16/wRatio):
         R=0
+        
     else:
-        R=wIns*pYX/wRem/pXY
+        R=(wRatio*np.exp(wExp))
     
+    #print(R,wIns*pYX/(wRem*pXY))
     
     if nrand.uniform()<R:
         
@@ -546,10 +554,17 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*q**-2*(2*np.pi)**-3
     wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
     
-
+   
+    wExp=-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu))\
+            +(np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))-(q**2/(2*m)*deltaTauRem))
+            
+    wRatio=pIn/deltaTauIn*omega*(2*np.pi*m/(deltaTauRem))**(-3/2)/(pRem*(1/(order)))/alphaTildaSq*q**2*(2*np.pi)**3
+    
     pYX=pRem*(1/(order))
-    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))\
-        /(2*np.pi*m/(deltaTauRem))**(3/2)
+    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))/(2*np.pi*m/(deltaTauRem))**(3/2)
+        
+    #print(R,(wRatio*np.exp(wExp)),order)
+
 
     
     
@@ -567,17 +582,23 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     
     #print(momentumListRem,'mR')
     
-    #print(wRem/wIns*pYX/pXY)
-    #print('r',wRem/wIns*pXY/pYX)
     
-    if wIns*pYX<wRem*pXY:
+    
+    if (wExp)>np.log(1/wRatio):
         R=1
-    elif wIns*pYX<wRem*pXY*1e10:
+        
+    elif wExp<np.log(1E-16/wRatio):
         R=0
+        
     else:
-        R=wRem/wIns*pXY/pYX
+        R=wRatio*np.exp(wExp)
+        
+        
     
+   
     if nrand.uniform()<R:
+    
+       
         return 1,tauListRem,momentumListRem
     else:
         return 0,tauListRem,momentumListRem
@@ -602,12 +623,16 @@ def spliceRemove(index1,remList,recList,index2):
 #the following all has to do with swap   
         
 def findEndPoint(qList,tau):
+    #print(tau,qList,'start')
     a=np.where(tau==qList)
-    
+    print(a[1])
     if a[1]==0:
+        #print('a1')
         b=a[0],1
     else:
+        #print('b2')
         b=a[0],0
+    
     
     tauP=qList[b]
     q=qList[a[0],2:]
@@ -623,20 +648,26 @@ def swap (qList,mList,order,omega,mu,m):
     
     
     #dont remember if integers is inclusive
-    a=nrand.integers(2,2*order+1)
+    a=nrand.integers(1,2*order+1)
     
     tauOne=mList[a,0]
     
     
-    #this just picks the closest vertex
+    #this just picks the closest vertex 
     #for this to work it is important that tauOne<tauB
     if a==1:
         tauTwo=mList[2,0]
         b=2
+    elif a==2*order:
+        tauTwo=mList[2*order,0]
+        tauOne=mList[2*order-1,0]
+        a=2*order-1
+        b=2*order
     elif abs(tauOne-mList[a-1,0])>abs(tauOne-mList[a+1,0]):
         
         tauTwo=mList[a+1,0]
         b=a+1
+
     else:
         
         tauTwo=tauOne
@@ -650,21 +681,36 @@ def swap (qList,mList,order,omega,mu,m):
     tauB,q2,i2,i2p=findEndPoint(qList, tauTwo)
     
     
+    if tauTwo==tauA or tauTwo==tauOne:
+        return qList,mList,0
+    #print(findEndPoint(qList, tauTwo))
     k1=mList[a,1:]
     k1P=swapDecTree(tauOne, tauTwo, tauA, tauB, k1, q1, q2)
     
     x=nrand.uniform()
     
-    wX=np.exp(-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(normVec(k1)**2/(2*m)-mu))
-    wY=np.exp(-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(normVec(k1P)**2/(2*m)-mu))
+    xExp=-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(normVec(k1)**2/(2*m)-mu)
+    yExp=-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(normVec(k1P)**2/(2*m)-mu)
+    # wX=np.exp(xExp)
+    # wY=np.exp(yExp)
     
-    if wX>wY:
+    # if wX==0 or wY==0:
+    #     print(wX,wY,'wx/y')
+    #     print(k1P)
+    #     print(qList,mList,'arrays')
+    #     print(tauOne,tauA,tauTwo,tauB,q1,q2,'index')
+    #     print(np.exp(xExp-yExp))
+    #     exit()
+        
+    
+    if xExp-yExp>0:
         r=1
-    elif wX>wY*1e10:
+    elif xExp-yExp<-16:
         r=0
     else:
-        r=wX/wY
+        r=np.exp(xExp-yExp)
     
+    #print(r,wX,wY,'r')
     if x<r:
         
         qList[i1]=tauTwo
@@ -687,19 +733,25 @@ def swapDecTree(t1,t2,ta,tb,k1,q1,q2):
     
     if t2<ta:
         if tb<t1:
+            #print(1)
             k=k1+q1+q2
         else:
             if ta<tb:
+                #print(2)
                 k=k1+q1
             else:
+                #print(3)
                 k=k1-q1
     else:
         if t1<tb:
+            #print(4)
             k=k1-q1-q2
         else:
             if ta<tb:
+                #print(5)
                 k=k1+q2
             else:
+                #print(6)
                 k=k1-q2
     return k
             

@@ -3,3 +3,5 @@
 Plots/*
 Plots/.DS_Store
 .DS_Store
+param.ini
+test.py
