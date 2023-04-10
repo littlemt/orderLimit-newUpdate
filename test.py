@@ -8,11 +8,28 @@ Created on Mon Aug 22 13:19:13 2022
 
 import configparser
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as mpl
 from  math import floor 
 from scipy.integrate import nquad 
 import dep.FPDMCUpdates_OrderLimit as FPC
 from numpy.linalg import norm
+import fpc_orderLimit as fpc
+
+#fix extend 
+def run(seed):
+
+    hist,zero,count,order=fpc.first_order(15,100000000,[1000,10,10,10,10,0],0,-6,5,500,100000,100,seed)
+
+    hist2=np.zeros((100,3))
+    hist2[:,0]=hist[:,0]
+    hist2[:,1]=fpc.calc(hist[:,1],hist[-1,0],hist[1,0]*2,0,-6,zero)
+    mpl.scatter(hist2[:,0],np.log(-hist2[:,1]))
+    
+    mpl.show()
+    mpl.bar(np.arange(len(order)),order/sum(order))
+    mpl.show()
+    print(count)
+    print(hist)
 
 
 def G(tau,p,mu):
@@ -63,7 +80,7 @@ for i in range(100000):
 
 
 
-
+def 
 
 
 

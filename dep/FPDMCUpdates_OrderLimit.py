@@ -625,7 +625,7 @@ def spliceRemove(index1,remList,recList,index2):
 def findEndPoint(qList,tau):
     #print(tau,qList,'start')
     a=np.where(tau==qList)
-    #print(a)
+    print(a[1])
     if a[1]==0:
         #print('a1')
         b=a[0],1
