@@ -73,19 +73,19 @@ def jackknife(a):
     '''
     dim=np.shape(a)
     dummyArray=np.ndarray(dim)
-    for i in range(dim[0]):
-        dummyArray[i]=np.average(fancySlice(i,a),axis=1)
+    for i in range(dim[1]):
+        dummyArray[:,i]=np.average(fancySlice(i,a),axis=1)
         
         
     return dummyArray
 
 def fancySlice(index,array):
     dim=np.shape(array)
-    dim[0]=dim[0]-1
+    dim=dim[0],dim[1]-1
     dummyArray=np.zeros(dim)
-    
-    dummyArray[:i]=array[:i]
-    dummyArray[i:]=array[i+1:]
+    print(dim)
+    dummyArray[:,:i]=array[:,:i]
+    dummyArray[:,i:]=array[:,i+1:]
     return dummyArray
     
     

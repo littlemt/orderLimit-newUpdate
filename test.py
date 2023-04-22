@@ -77,8 +77,14 @@ def rRem(aList,eList,alpha,propArc,mu):
 # for i in range(100000):    
 #     FPC.swap(aList,eList,n,1,-6,1)
 
-a=[1,2,3,4,5,6]
-b=np.ndarray(len(a)-1)
+a=np.ones((6,3))
+for i in range(len(a)):
+    a[i]=a[i]*i
+
+
+dim=np.shape(a)
+print(dim[0])
+b=np.ndarray((dim[0]-1,dim[1]))
 
 
 for i in range( len(a)):

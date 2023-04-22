@@ -346,14 +346,14 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
+    # wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
+    # wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
     
     
 
-    pYX=pRem*(1/(order+1))
-    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
-        /(2*np.pi*m/(deltaTauRem))**(3/2)
+    # pYX=pRem*(1/(order+1))
+    # pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
+    #     /(2*np.pi*m/(deltaTauRem))**(3/2)
         
     wExp=-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))+np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu))\
         +(normVec(q)**2/(2*m)*deltaTauRem)
