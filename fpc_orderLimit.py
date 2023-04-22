@@ -159,7 +159,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             #orderList.append(n)  
         elif pTau<x<=pIns and n<orderMax:
             #insert update
-            #print('ins')
+            print('ins')
             
             qList,mList,i=FPC.insertArc(qList,mList,tau,omega,m,n,pIns,pRem,alpha,mu)
             
@@ -172,7 +172,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             
         elif pIns<x<=pRem and n>=1:
             #remove update
-            #print('rem')
+            print('rem')
             qList,mList,i=FPC.removeArc(qList,mList,omega,m,n,mu,pRem,pIns,alpha)
             
             countR+=i
@@ -233,7 +233,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     
         if thermal<=countTherm and countLoopNum==step:
             #
-            #print(n)
+            #print(n,tau)
 
             
             if n==0:

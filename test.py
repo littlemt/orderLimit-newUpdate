@@ -18,7 +18,7 @@ import fpc_orderLimit as fpc
 #fix extend 
 def run(seed):
 
-    hist,zero,count,order=fpc.first_order(15,100000000,[1000,10,10,10,10,0],0,-6,5,500,100000,100,seed)
+    hist,zero,count,order=fpc.first_order(15,100000000,[10,10,10,10,10,0],0,-6,5,500,1000000,1,seed)
 
     hist2=np.zeros((100,3))
     hist2[:,0]=hist[:,0]
@@ -65,22 +65,29 @@ def rRem(aList,eList,alpha,propArc,mu):
     
     return wX/wY*pXY/pYX
 
-aList=np.zeros((2,5))
-eList=np.zeros((6,4),dtype=float)
-eList[1,0]=1
-n=0
-while n<2:
-    aList,eList,i=FPC.insertArc(aList, eList, 5, 1, 1, n, 1, 1, 5, -6)
-    n+=i
+# aList=np.zeros((2,5))
+# eList=np.zeros((6,4),dtype=float)
+# eList[1,0]=1
+# n=0
+# while n<2:
+#     aList,eList,i=FPC.insertArc(aList, eList, 5, 1, 1, n, 1, 1, 5, -6)
+#     n+=i
   
 
-for i in range(100000):    
-    FPC.swap(aList,eList,n,1,-6,1)
+# for i in range(100000):    
+#     FPC.swap(aList,eList,n,1,-6,1)
+
+a=[1,2,3,4,5,6]
+b=np.ndarray(len(a)-1)
+
+
+for i in range( len(a)):
+    b[:i]=a[:i]
+    b[i:]=a[i+1:]
+    print(b)
 
 
 
-
-def 
 
 
 

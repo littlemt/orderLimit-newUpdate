@@ -346,14 +346,14 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     
-    # wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
-    # wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*normVec(q)**-2*(2*np.pi)**-3
+    wRem=np.exp(-np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu)))
     
     
 
-    # pYX=pRem*(1/(order+1))
-    # pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
-    #     /(2*np.pi*m/(deltaTauRem))**(3/2)
+    pYX=pRem*(1/(order+1))
+    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(normVec(q)**2/(2*m)*deltaTauRem))\
+        /(2*np.pi*m/(deltaTauRem))**(3/2)
         
     wExp=-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))+np.sum(deltaTauListRem*(normVec(momentumListRem)**2/(2*m)-mu))\
         +(normVec(q)**2/(2*m)*deltaTauRem)
@@ -370,7 +370,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     else:
         R=(wRatio*np.exp(wExp))
     
-    print(R,wRatio*np.exp(wExp),'i')
+    #print(R,wIns*pYX/(wRem*pXY),'i')
     
     if nrand.uniform()<R:
         
@@ -551,18 +551,19 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     #print(np.shape(deltaTauListIn),np.shape(normVec(momentumListIn)**2/2/m-mu),np.shape(np.exp(-omega*(deltaTauIn))))
-    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*q**-2*(2*np.pi)**-3
-    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
+    # wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*q**-2*(2*np.pi)**-3
+    # wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
     
+    # pYX=pRem*(1/(order))
+    # pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))/(2*np.pi*m/(deltaTauRem))**(3/2)
+        
    
     wExp=-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu))\
             +(np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))-(q**2/(2*m)*deltaTauRem))
             
     wRatio=pIn/deltaTauIn*omega*(2*np.pi*m/(deltaTauRem))**(-3/2)/(pRem*(1/(order)))/alphaTildaSq*q**2*(2*np.pi)**3
     
-    pYX=pRem*(1/(order))
-    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))/(2*np.pi*m/(deltaTauRem))**(3/2)
-        
+   
     #print(R,(wRatio*np.exp(wExp)),order)
 
 
@@ -593,8 +594,8 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     else:
         R=wRatio*np.exp(wExp)
         
-    print(R,wRatio*np.exp(wExp),'r')     
-    
+        
+    #print(R,(wIns*pYX/(wRem*pXY))**-1,'r')
    
     if nrand.uniform()<R:
     
@@ -625,7 +626,7 @@ def spliceRemove(index1,remList,recList,index2):
 def findEndPoint(qList,tau):
     #print(tau,qList,'start')
     a=np.where(tau==qList)
-    print(a[1])
+    
     if a[1]==0:
         #print('a1')
         b=a[0],1
