@@ -73,19 +73,23 @@ def jackknife(a):
     '''
     dim=np.shape(a)
     dummyArray=np.ndarray(dim)
-    for i in range(dim[1]):
-        dummyArray[:,i]=np.average(fancySlice(i,a),axis=1)
+
+    for i in range(dim[0]):
+        dummyArray[i]=np.average(jkSlice(i,a),axis=0)
         
         
     return dummyArray
 
-def fancySlice(index,array):
-    dim=np.shape(array)
-    dim=dim[0],dim[1]-1
-    dummyArray=np.zeros(dim)
-    print(dim)
-    dummyArray[:,:i]=array[:,:i]
-    dummyArray[:,i:]=array[:,i+1:]
+def jkSlice(index,array):
+    #could probobly do this destructivly dont know if this is more efficient 
+    #or not but it should not matter 
+    dim=list(np.shape(array))
+    dim[0]=dim[0]-1
+    dummyArray=np.zeros(tuple(dim))
+    
+    dummyArray[:index]=array[:index]
+    dummyArray[index:]=array[index+1:]
+    
     return dummyArray
     
     
@@ -120,30 +124,43 @@ if __name__ =='__main__':
         histArray=np.zeros((bins,3))
         histArray[:,0]=result[0][0][:,0]
         noZero=np.zeros(noHist)
-        count=np.zeros((13,noHist))
-        order=np.zeros((maxOrder+1,noHist))
+        count=np.zeros((noHist,13))
+        order=np.zeros((noHist,maxOrder+1))
         countAvg=np.zeros(12)
         orderAvg=np.zeros(maxOrder+1)
         
         
        
-        histR=np.ndarray((bins,noHist))
+        histR=np.ndarray((noHist,bins))
         
         for i in range(noHist):
             #this loop unpacks the output from the pool
             noZero[i]=result[i][1]
-            histR[:,i]=fpc.calc(result[i][0][:,1],histArray[-1,0],histArray[0,0]*2,pExt,mu,result[i][1])
-            count[:,i]=result[i][2]
-            order[:,i]=result[i][3]
+            histR[i,:]=result[i][0][:,1]
+            count[i,:]=result[i][2]
+            order[i,:]=result[i][3]
             
         jkArray=jackknife(histR)
+        jkZero=jackknife(noZero)
+        jkCount=jackknife(count)
+        
+        jkHist=np.ndarray(np.shape(jkArray))
+        for i in range(noHist):
+            jkHist[i]=fpc.calc(jkArray[i],histArray[-1,0],histArray[0,0]*2,pExt,mu,jkZero[i])
             
     
+        #,histArray[-1,0],histArray[0,0]*2,pExt,mu,result[i][1])
+    
         
-        orderAvg=np.average(order,axis=1)
-        countAvg=np.average(count,axis=1)
-        histArray[:,1]=np.average(jkArray,axis=1)
-        histArray[:,2]=np.std(jkArray,axis=1)/noThread**.5 
+        orderAvg=np.average(order,axis=0)
+        countAvg=np.average(count,axis=0)
+        histArray[:,1]=np.average(jkHist,axis=0)
+        
+        #is this error estimation proper or do you have to do it differnetly with jackknife?
+        #there was some thing about it in the notes by peter young but dont know what they mean?
+        #not excatly sure what eq 53 means?
+        
+        histArray[:,2]=np.std(jkHist,axis=0)*(noHist-1)**.5/noHist**.5 
             
 
         directory='./Plots/noRe_O'+config.get('section_a','maxOrder')+'_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_T'+config.get('section_a','tauMax')+'/'

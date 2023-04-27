@@ -81,16 +81,14 @@ a=np.ones((6,3))
 for i in range(len(a)):
     a[i]=a[i]*i
 
+def multiplyPlus(a,b,num):
+    return a*b+num
 
-dim=np.shape(a)
-print(dim[0])
-b=np.ndarray((dim[0]-1,dim[1]))
+b=np.linspace(0, 6,6)
 
 
-for i in range( len(a)):
-    b[:i]=a[:i]
-    b[i:]=a[i+1:]
-    print(b)
+vecMult=np.vectorize(multiplyPlus)
+
 
 
 
