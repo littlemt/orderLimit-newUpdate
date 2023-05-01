@@ -8,14 +8,9 @@ Created on Wed Aug 17 11:11:36 2022
 
 from multiprocessing import Pool
 import fpc_orderLimit as fpc
-import plotting as fplot
 import configparser
 import numpy as np
 import os
-
-
-from matplotlib import rc 
-rc('text', usetex=True)
 
 
 
@@ -177,13 +172,7 @@ if __name__ =='__main__':
         np.savetxt(directory+'zeros_Seed'+config.get('section_b','seed'), noZero,delimiter=',')
         np.savetxt(directory+'counts_Seed'+config.get('section_b','seed'),count,delimiter=',')
         
-        if int(config.get('section_b','plot'))==1:
-            if int(config.get('section_a','maxOrder'))==0:
-                fplot.plot0(histArray,pExt,mu,directory=directory)
-            elif int(config.get('section_a','maxOrder'))==1:
-                fplot.plot1(histArray,countAvg,orderAvg,pExt,mu,alpha,directory=directory)
-            else:
-                fplot.plot(histArray,countAvg,orderAvg,pExt,mu,directory=directory)
+
             
         
         
