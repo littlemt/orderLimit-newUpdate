@@ -140,7 +140,7 @@ if __name__ =='__main__':
         zeroCount=0
         for i in range(noHist):
             if result[i][1]!=0:
-                noZero[zeroCount]=result[i][1]
+                zeroList[zeroCount]=result[i][1]
                 histR[zeroCount,:]=result[i][0][:,1]
                 count[zeroCount,:]=result[i][2]
                 order[zeroCount,:]=result[i][3]
@@ -149,7 +149,7 @@ if __name__ =='__main__':
                 
             
         jkArray=jackknife(histR)
-        jkZero=jackknife(noZero)
+        jkZero=jackknife(zeroList)
         jkCount=jackknife(count)
         
         jkHist=np.ndarray(np.shape(jkArray))
