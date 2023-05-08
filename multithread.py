@@ -120,25 +120,33 @@ if __name__ =='__main__':
         mu=float(config.get('section_a','mu'))
         maxOrder=int(config.get('section_a','maxOrder'))
         alpha=float(config.get('section_a','alpha'))
-         
+        noZero=np.zeros(noHist)
         histArray=np.zeros((bins,3))
         histArray[:,0]=result[0][0][:,0]
-        noZero=np.zeros(noHist)
-        count=np.zeros((noHist,13))
-        order=np.zeros((noHist,maxOrder+1))
         countAvg=np.zeros(12)
         orderAvg=np.zeros(maxOrder+1)
         
         
-       
-        histR=np.ndarray((noHist,bins))
         
+        
+        
+        nonZero=np.count_nonzero(noZero)
+        histR=np.ndarray((nonZero,bins))
+        zeroList=np.zeros(nonZero)
+        count=np.zeros((nonZero,13))
+        order=np.zeros((nonZero,maxOrder+1))
+        
+        
+        zeroCount=0
         for i in range(noHist):
-            #this loop unpacks the output from the pool
-            noZero[i]=result[i][1]
-            histR[i,:]=result[i][0][:,1]
-            count[i,:]=result[i][2]
-            order[i,:]=result[i][3]
+            if result[i][1]!=0:
+                noZero[zeroCount]=result[i][1]
+                histR[zeroCount,:]=result[i][0][:,1]
+                count[zeroCount,:]=result[i][2]
+                order[zeroCount,:]=result[i][3]
+                zeroCount+=1
+            
+                
             
         jkArray=jackknife(histR)
         jkZero=jackknife(noZero)
