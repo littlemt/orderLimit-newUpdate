@@ -285,13 +285,6 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
 #check how often a update is being rejected 
 #check to see if first order is working 
 
-def firstOrderSolution(tau,mu,alpha,omega=1,m=1):
-    return -2*alpha*2**.5*np.pi*np.exp(tau*(mu-omega))*m**.5*(2*(omega*tau)**.5+np.exp(omega*tau)*np.pi**.5*(2*omega*tau-1)*erf((omega*tau)**.5))/(32**.5*omega**(1.5)*np.pi**1.5)
-
-
-
-    
-    
 #should I make a plot individual?
 
 def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):
