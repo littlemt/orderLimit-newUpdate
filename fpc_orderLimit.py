@@ -10,7 +10,6 @@ import dep.FPDMCUpdates_OrderLimit as FPC
 import numpy as np
 import numpy.random as nrng
 
-from scipy.special import erf
 
 import configparser
 config=configparser.ConfigParser()
