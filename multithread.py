@@ -129,12 +129,16 @@ if __name__ =='__main__':
         
         
         
+        for i in range(noHist):
+            noZero[i]=result[i][1]
         
         nonZero=np.count_nonzero(noZero)
         histR=np.ndarray((nonZero,bins))
         zeroList=np.zeros(nonZero)
         count=np.zeros((nonZero,13))
         order=np.zeros((nonZero,maxOrder+1))
+        
+        
         
         
         zeroCount=0
