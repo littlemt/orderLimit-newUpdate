@@ -157,7 +157,7 @@ if __name__ =='__main__':
         jkCount=jackknife(count)
         
         jkHist=np.ndarray(np.shape(jkArray))
-        for i in range(noHist):
+        for i in range(zeroCount):
             jkHist[i]=fpc.calc(jkArray[i],histArray[-1,0],histArray[0,0]*2,pExt,mu,jkZero[i])
             
     
