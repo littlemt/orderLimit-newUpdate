@@ -653,7 +653,7 @@ def swap (qList,mList,order,omega,mu,m):
     
     
     #this just picks the closest vertex 
-    #for this to work it is important that tauOne<tauB
+    #for this to work it is important that tauOne<tauTwo
     if a==1:
         tauTwo=mList[2,0]
         b=2
@@ -733,25 +733,31 @@ def swapDecTree(t1,t2,ta,tb,k1,q1,q2):
     if t2<ta:
         if tb<t1:
             #print(1)
+            #case 6 
             k=k1+q1+q2
         else:
             if ta<tb:
+                #case 1
                 #print(2)
-                k=k1+q1
+                k=k1+q1-q2
             else:
+                #case 2
                 #print(3)
-                k=k1-q1
+                k=k1+q1-q2
     else:
         if t1<tb:
             #print(4)
+            #case 5
             k=k1-q1-q2
         else:
             if ta<tb:
+                #case 4
                 #print(5)
-                k=k1+q2
+                k=k1+q2-q1
             else:
+                #case 3
                 #print(6)
-                k=k1-q2
+                k=k1-q1+q2
     return k
             
             

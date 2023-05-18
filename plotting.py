@@ -119,7 +119,7 @@ def plot(hist,count,order,p,mu,directory='./',m=1):
     mpl.title(r'$\mu=$'+str(mu))
     mpl.errorbar(x,np.log(-y),yerr=yerr ,fmt='o')
     mpl.xlim(x[0],x[-1])
-    mpl.ylim(-20,0)
+    #mpl.ylim(-20,0)
     mpl.savefig(directory+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+config.get('section_a','exMomentum')+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_O'+config.get('section_a','maxOrder')+'.pdf' )
     
     mpl.show()
