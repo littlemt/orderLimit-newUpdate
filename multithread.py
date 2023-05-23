@@ -14,9 +14,6 @@ import numpy as np
 import os
 
 
-from matplotlib import rc 
-rc('text', usetex=True)
-
 
 
 
