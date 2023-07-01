@@ -18,8 +18,8 @@ import fpc_orderLimit as fpc
 #fix extend 
 def run(seed):
 
-    hist,zero,count,order=fpc.first_order(15,100000000,[100,11,10,10,0,0],0,-6,5,500,100000,1,seed)
-
+    data=fpc.first_order(15,10000000,[1,1,1,0,1,0],0,-6,5,100,1,1,seed,debug=1)
+    hist,zero,count,order,tList,mList,qList,oList=data
     hist2=np.zeros((100,3))
     hist2[:,0]=hist[:,0]
     hist2[:,1]=fpc.calc(hist[:,1],hist[-1,0],hist[1,0]*2,0,-6,zero)
@@ -27,6 +27,9 @@ def run(seed):
     
     mpl.show()
     mpl.bar(np.arange(len(order)),order/sum(order))
+    mpl.show()
+    
+    mpl.plot([i for i in range(len(oList))],oList)
     mpl.show()
     print(count)
     print(hist)
@@ -65,6 +68,29 @@ def rRem(aList,eList,alpha,propArc,mu):
     
     return wX/wY*pXY/pYX
 
+# aList=np.zeros((2,5))
+# eList=np.zeros((6,4),dtype=float)
+# eList[1,0]=1
+# n=0
+# while n<2:
+#     aList,eList,i=FPC.insertArc(aList, eList, 5, 1, 1, n, 1, 1, 5, -6)
+#     n+=i
+  
+
+# for i in range(100000):    
+#     FPC.swap(aList,eList,n,1,-6,1)
+
+a=np.ones((6,3))
+for i in range(len(a)):
+    a[i]=a[i]*i
+
+def multiplyPlus(a,b,num):
+    return a*b+num
+
+b=np.linspace(0, 6,6)
+
+
+vecMult=np.vectorize(multiplyPlus)
 
 
 

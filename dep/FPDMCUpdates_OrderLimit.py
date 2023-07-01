@@ -80,6 +80,9 @@ def tauReweight(tau,eps_p,mu):
     '''
     return np.exp(tau*(eps_p-mu))
 
+def tauProb(R,eps_p,mu):
+    #need to define the rabdin tau generating function
+    return 20*R
     
 def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     '''
@@ -113,10 +116,8 @@ def changeTau(tau,tauMax,mList,pExt,order,mu,m):
     
     
        
-    if order==0:
-        t=0
-    else:
-        t=mList[2*order+1,0]
+   
+    t=mList[2*order,0]
     
     R=nrand.uniform()
     tauNew=t-np.log(R)*(abs(eps-mu))**-1
@@ -162,7 +163,7 @@ def changeTauRe(tau,tauMax,mList,pExt,order,mu,m):
 
     '''
     
-
+    eps=pExt**2/(2*m)
     R=nrand.uniform()
     
     if order!=0:
@@ -172,13 +173,12 @@ def changeTauRe(tau,tauMax,mList,pExt,order,mu,m):
         
         
         R=nrand.uniform()
-        deltaTau=tauMax-t
-        tauNew=t+R*deltaTau
+        tauNew=t+tauProb(R,eps,mu)
         
         
     else:
         
-        tauNew=R=nrand.uniform()*tauMax
+        tauNew=tauProb(R,eps,mu)
         
     
     if tauNew>tauMax or nrand.uniform()>1:
@@ -368,7 +368,7 @@ def R_insert(tauListIn,momentumListIn,tauListRem,momentumListRem,alpha,m,mu,omeg
     else:
         R=(wRatio*np.exp(wExp))
     
-    #print(R,wIns*pYX/(wRem*pXY))
+    #print(R,wIns*pYX/(wRem*pXY),'i')
     
     if nrand.uniform()<R:
         
@@ -510,7 +510,7 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     momentumList=mList[:,1:4]
     tauList=mList[:,0]
     
-    #print(index1,index2)
+   
     
     #takes the two indicies given to it by the remove arc function and creates the array of 
     #the momentums of all of the electron propogators covered by the sugested arc to be removed
@@ -549,18 +549,25 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
     alphaTildaSq=2*np.pi*alpha*2**.5
     
     #print(np.shape(deltaTauListIn),np.shape(normVec(momentumListIn)**2/2/m-mu),np.shape(np.exp(-omega*(deltaTauIn))))
-    # wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*q**-2*(2*np.pi)**-3
-    # wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
+    wIns=alphaTildaSq*np.exp(-np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu)))*np.exp(-omega*(deltaTauRem))*q**-2*(2*np.pi)**-3
+    wRem=np.exp(-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu)))
     
+    pYX=pRem*(1/(order))
+    pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))/(2*np.pi*m/(deltaTauRem))**(3/2)
+        
    
     wExp=-np.sum(deltaTauListRem*((momentumListRemN)**2/(2*m)-mu))\
             +(np.sum(deltaTauListIn*(normVec(momentumListIn)**2/2/m-mu))-(q**2/(2*m)*deltaTauRem))
             
     wRatio=pIn/deltaTauIn*omega*(2*np.pi*m/(deltaTauRem))**(-3/2)/(pRem*(1/(order)))/alphaTildaSq*q**2*(2*np.pi)**3
     
-    # pYX=pRem*(1/(order))
-    # pXY=pIn/deltaTauIn*omega*np.exp(-omega*(deltaTauRem))*np.exp(-(q**2/(2*m)*deltaTauRem))/(2*np.pi*m/(deltaTauRem))**(3/2)
-        
+    # if wRatio<0:
+    #     print(deltaTauIn,deltaTauRem)
+    #     print(tauList)
+    #     print(index1,index2)
+    #     print(tauList[index2+1],tauList[index1-1])
+    #     exit()
+   
     #print(R,(wRatio*np.exp(wExp)),order)
 
 
@@ -586,13 +593,14 @@ def R_remove(qList,mList,index1,index2,m,mu,q,omega,pRem,pIn,order,alpha):
         R=1
         
     elif wExp<np.log(1E-16/wRatio):
+        # print(wExp,np.log(1E-16/wRatio),wRatio)
         R=0
         
     else:
         R=wRatio*np.exp(wExp)
         
         
-    
+    # print(R,(wIns*pYX/(wRem*pXY))**-1,'r',wRatio)
    
     if nrand.uniform()<R:
     
@@ -621,9 +629,35 @@ def spliceRemove(index1,remList,recList,index2):
 #the following all has to do with swap   
         
 def findEndPoint(qList,tau):
+    '''
+    this functuion is used to find the appropriate phonon arc for the chosen end vetex
+    
+
+    Parameters
+    ----------
+    qList : numpy array
+        array contaning all the phonon arcs.
+    tau : float
+        chosen vertex.
+
+    Returns
+    -------
+    tauP : float
+        the other vertex in the phonon arc.
+    q : numpy array
+        the momentum of the phonon arc.
+    a : float
+        the index of the chosen vertex.
+    b : float
+        the index of the other vertex.
+
+    '''
     #print(tau,qList,'start')
     a=np.where(tau==qList)
     
+    
+    #this finds the other end point since it can only be in positions 0 or 1 it checks and assigns the other
+
     if a[1]==0:
         #print('a1')
         b=a[0],1
@@ -639,20 +673,19 @@ def findEndPoint(qList,tau):
     
         
 def swap (qList,mList,order,omega,mu,m):
-    #updated has bugs
+
     
     #print('swap')
     
     
     
-    #dont remember if integers is inclusive
     a=nrand.integers(1,2*order+1)
     
     tauOne=mList[a,0]
     
     
     #this just picks the closest vertex 
-    #for this to work it is important that tauOne<tauB
+    #for this to work it is important that tauOne<tauTwo
     if a==1:
         tauTwo=mList[2,0]
         b=2
@@ -674,7 +707,7 @@ def swap (qList,mList,order,omega,mu,m):
         a=b-1
         
     
-    
+    #this section finds the other vetex for both of the chosen vertex
     tauA,q1,i1,i1p=findEndPoint(qList, tauOne)
     tauB,q2,i2,i2p=findEndPoint(qList, tauTwo)
     
@@ -687,11 +720,22 @@ def swap (qList,mList,order,omega,mu,m):
     
     x=nrand.uniform()
     
+    
+    
+    
     xExp=-omega*(abs(tauOne-tauA)+abs(tauTwo-tauB))-(tauTwo-tauOne)*(normVec(k1)**2/(2*m)-mu)
     yExp=-omega*(abs(tauOne-tauB)+abs(tauTwo-tauA))-(tauTwo-tauOne)*(normVec(k1P)**2/(2*m)-mu)
-    # wX=np.exp(xExp)
-    # wY=np.exp(yExp)
+    # wX=np.exp(-omega*abs(tauOne-tauA))*np.exp(-omega*abs(tauTwo-tauB))*np.exp(-(tauTwo-tauOne)*(normVec(k1)**2/(2*m)-mu))
+    # wY=np.exp(-omega*abs(tauOne-tauB))*np.exp(-omega*abs(tauTwo-tauA))*np.exp(-(tauTwo-tauOne)*(normVec(k1P)**2/(2*m)-mu))
     
+    
+    
+    
+    # print(tauOne,tauTwo,tauA,tauB)
+    # print(qList[i1[0]],'arc1')
+    # print(qList[i2[0]],'arc2')
+    # print(k1,k1P,'m')
+    # print(np.exp(xExp-yExp),wX/wY,'exponents')
     # if wX==0 or wY==0:
     #     print(wX,wY,'wx/y')
     #     print(k1P)
@@ -702,15 +746,19 @@ def swap (qList,mList,order,omega,mu,m):
         
     
     if xExp-yExp>0:
+        # print(np.exp(xExp-yExp),1,'r')
         r=1
-    elif xExp-yExp<-16:
+    elif xExp-yExp<-36:
         r=0
+        # print(np.exp(xExp-yExp),r,'r')
     else:
         r=np.exp(xExp-yExp)
+        # print(np.exp(xExp-yExp),r,'r')
     
-    #print(r,wX,wY,'r')
+    
     if x<r:
         
+        #takes the index given from find and swaps the positions of the two 
         qList[i1]=tauTwo
         qList[i2]=tauOne
         
@@ -732,25 +780,31 @@ def swapDecTree(t1,t2,ta,tb,k1,q1,q2):
     if t2<ta:
         if tb<t1:
             #print(1)
+            #case 6 
             k=k1+q1+q2
         else:
             if ta<tb:
+                #case 1
                 #print(2)
-                k=k1+q1
+                k=k1+q1-q2
             else:
+                #case 2
                 #print(3)
-                k=k1-q1
+                k=k1+q1-q2
     else:
         if t1<tb:
             #print(4)
+            #case 5
             k=k1-q1-q2
         else:
             if ta<tb:
+                #case 4
                 #print(5)
-                k=k1+q2
+                k=k1+q2-q1
             else:
+                #case 3
                 #print(6)
-                k=k1-q2
+                k=k1-q1+q2
     return k
             
             

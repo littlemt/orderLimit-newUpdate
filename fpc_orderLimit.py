@@ -10,7 +10,6 @@ import dep.FPDMCUpdates_OrderLimit as FPC
 import numpy as np
 import numpy.random as nrng
 
-from scipy.special import erf
 
 import configparser
 config=configparser.ConfigParser()
@@ -90,6 +89,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     histList[:,0]+=histList[1,0]*.5
     
     orderList=np.zeros(orderMax+1)
+    order=[]
     
     deltaTau=tauMax/bins
     
@@ -229,11 +229,12 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             mcT=0
         
         if debug==1:
-            print(n,tau,time)
+            order.append(n) 
+            #print(n,tau,time)
     
         if thermal<=countTherm and countLoopNum==step:
             #
-            #print(n)
+            #print(n,tau)
 
             
             if n==0:
@@ -276,7 +277,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     count =np.array([mcTime[0],mcTime[1],countT,countI,countID,-countR,countRD,countS,countSD,countE,countED,countFE,countFED])
     if debug==1:
         
-        return tauList,countZero,histList,qList,count,mList,orderList
+        return histList,countZero,count,orderList,tauList,qList,mList,order
     else:
         
         return histList,countZero,count,orderList
@@ -285,13 +286,6 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
 #check how often a update is being rejected 
 #check to see if first order is working 
 
-def firstOrderSolution(tau,mu,alpha,omega=1,m=1):
-    return -2*alpha*2**.5*np.pi*np.exp(tau*(mu-omega))*m**.5*(2*(omega*tau)**.5+np.exp(omega*tau)*np.pi**.5*(2*omega*tau-1)*erf((omega*tau)**.5))/(32**.5*omega**(1.5)*np.pi**1.5)
-
-
-
-    
-    
 #should I make a plot individual?
 
 def calc(histdata,tauMax,deltaTau,pExt,mu,zeroOrder,m=1,omega=1):

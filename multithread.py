@@ -14,9 +14,6 @@ import numpy as np
 import os
 
 
-from matplotlib import rc 
-rc('text', usetex=True)
-
 
 
 
@@ -57,7 +54,42 @@ def loop(seed):
     return data
     #maybe just return the data
 
+def jackknife(a):
+    '''
+    this function runs jackknife satistics on input array a
 
+    Parameters
+    ----------
+    a : array
+        input array.
+
+    Returns
+    -------
+    None.
+
+    '''
+    dim=np.shape(a)
+    dummyArray=np.ndarray(dim)
+
+    for i in range(dim[0]):
+        dummyArray[i]=np.average(jkSlice(i,a),axis=0)
+        
+        
+    return dummyArray
+
+def jkSlice(index,array):
+    #could probobly do this destructivly dont know if this is more efficient 
+    #or not but it should not matter 
+    dim=list(np.shape(array))
+    dim[0]=dim[0]-1
+    dummyArray=np.zeros(tuple(dim))
+    
+    dummyArray[:index]=array[:index]
+    dummyArray[index:]=array[index+1:]
+    
+    return dummyArray
+    
+    
 
 if __name__ =='__main__':
     
@@ -66,11 +98,11 @@ if __name__ =='__main__':
     config.read('param.ini')
     seed=int(config.get('section_b','seed'))
     noThread=int(config.get('section_b','noThread'))
-    
+    noHist=int(config.get('section_b','noHist'))
     
     rng=np.random.default_rng(seed)
     
-    rand=rng.integers(0,int(1E10),noThread)
+    rand=rng.integers(0,int(1E10),noHist)
     #gen random numbers same dim as number of threds
     #run the parallel using the random num as seeds
     bins=int(config.get('section_a','bins'))
@@ -85,32 +117,59 @@ if __name__ =='__main__':
         mu=float(config.get('section_a','mu'))
         maxOrder=int(config.get('section_a','maxOrder'))
         alpha=float(config.get('section_a','alpha'))
-         
+        noZero=np.zeros(noHist)
         histArray=np.zeros((bins,3))
         histArray[:,0]=result[0][0][:,0]
-        noZero=np.zeros(noThread)
-        count=np.zeros((13,noThread))
-        order=np.zeros((maxOrder+1,noThread))
         countAvg=np.zeros(12)
         orderAvg=np.zeros(maxOrder+1)
         
         
-       
-        histR=np.ndarray((bins,noThread))
         
-        for i in range(noThread):
-            #this loop unpacks the output from the pool
+        
+        for i in range(noHist):
             noZero[i]=result[i][1]
-            histR[:,i]=fpc.calc(result[i][0][:,1],histArray[-1,0],histArray[0,0]*2,pExt,mu,result[i][1])
-            count[:,i]=result[i][2]
-            order[:,i]=result[i][3]
+        
+        nonZero=np.count_nonzero(noZero)
+        histR=np.ndarray((nonZero,bins))
+        zeroList=np.zeros(nonZero)
+        count=np.zeros((nonZero,13))
+        order=np.zeros((nonZero,maxOrder+1))
+        
+        
+        
+        
+        zeroCount=0
+        for i in range(noHist):
+            if result[i][1]!=0:
+                zeroList[zeroCount]=result[i][1]
+                histR[zeroCount,:]=result[i][0][:,1]
+                count[zeroCount,:]=result[i][2]
+                order[zeroCount,:]=result[i][3]
+                zeroCount+=1
+            
+                
+            
+        jkArray=jackknife(histR)
+        jkZero=jackknife(zeroList)
+        jkCount=jackknife(count)
+        
+        jkHist=np.ndarray(np.shape(jkArray))
+        for i in range(zeroCount):
+            jkHist[i]=fpc.calc(jkArray[i],histArray[-1,0],histArray[0,0]*2,pExt,mu,jkZero[i])
             
     
+        #,histArray[-1,0],histArray[0,0]*2,pExt,mu,result[i][1])
+    
         
-        orderAvg=np.average(order,axis=1)
-        countAvg=np.average(count,axis=1)
-        histArray[:,1]=np.average(histR,axis=1)
-        histArray[:,2]=np.std(histR,axis=1)/noThread**.5 
+        orderAvg=np.average(order,axis=0)
+        countAvg=np.average(count,axis=0)
+        histArray[:,1]=np.average(jkHist,axis=0)
+        
+        #is this error estimation proper or do you have to do it differnetly with jackknife?
+        #there was some thing about it in the notes by peter young but dont know what they mean?
+        #not excatly sure what eq 53 means?
+        
+        histArray[:,2]=np.std(jkHist,axis=0)*(noHist-1)**.5/noHist**.5 
             
 
         directory='./Plots/Re_O'+config.get('section_a','maxOrder')+'_m'+str(mu)+'_P='+config.get('section_a','updateProb')+'_p'+str(pExt)+'_a'+config.get('section_a','alpha')+'_rt'+config.get('section_a','runTime')+'_T'+config.get('section_a','tauMax')+'/'
