@@ -89,6 +89,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     histList[:,0]+=histList[1,0]*.5
     
     orderList=np.zeros(orderMax+1)
+    order=[]
     
     deltaTau=tauMax/bins
     
@@ -228,7 +229,8 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
             mcT=0
         
         if debug==1:
-            print(n,tau,time)
+            order.append(n) 
+            #print(n,tau,time)
     
         if thermal<=countTherm and countLoopNum==step:
             #
@@ -275,7 +277,7 @@ def first_order(tauMax,runTime,P,pExt,mu,alpha,orderMax,thermal,step,seed,mcTMax
     count =np.array([mcTime[0],mcTime[1],countT,countI,countID,-countR,countRD,countS,countSD,countE,countED,countFE,countFED])
     if debug==1:
         
-        return tauList,countZero,histList,qList,count,mList,orderList
+        return histList,countZero,count,orderList,tauList,qList,mList,order
     else:
         
         return histList,countZero,count,orderList

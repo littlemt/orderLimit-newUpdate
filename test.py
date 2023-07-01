@@ -18,8 +18,8 @@ import fpc_orderLimit as fpc
 #fix extend 
 def run(seed):
 
-    hist,zero,count,order=fpc.first_order(15,100000000,[10,10,10,10,10,0],0,-6,5,500,1000000,1,seed)
-
+    data=fpc.first_order(15,10000000,[1,1,1,0,1,0],0,-6,5,100,1,1,seed,debug=1)
+    hist,zero,count,order,tList,mList,qList,oList=data
     hist2=np.zeros((100,3))
     hist2[:,0]=hist[:,0]
     hist2[:,1]=fpc.calc(hist[:,1],hist[-1,0],hist[1,0]*2,0,-6,zero)
@@ -27,6 +27,9 @@ def run(seed):
     
     mpl.show()
     mpl.bar(np.arange(len(order)),order/sum(order))
+    mpl.show()
+    
+    mpl.plot([i for i in range(len(oList))],oList)
     mpl.show()
     print(count)
     print(hist)
